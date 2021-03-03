@@ -194,3 +194,8 @@ if __name__ == '__main__':
     # print tables
     print(indi_table)
     print(fam_table)
+
+    # output to file
+    with open("output.txt", "w+") as f:
+        f.write(str(indi_table))
+        f.write(str(fam_table))
