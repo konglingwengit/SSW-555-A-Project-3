@@ -85,8 +85,8 @@ def read_ged_data(file):
     dic = {}
     flag = False
 
-    with open(file) as file_p:
-        all_lines = file_p.readlines()
+    with open(file) as f:
+        all_lines = f.readlines()
         for line, next_line in zip(all_lines, all_lines[1:]):
             current_arr = line.strip().split(" ")
             next_arr = next_line.strip().split(" ")
@@ -100,7 +100,13 @@ def read_ged_data(file):
             elif current_arr[1] == "DATE" and flag:
                 flag = False
                 date_arr = current_arr[2:]
-                dic[current_arr[1]] = format_date(date_arr)
+                # Dates before current date
+                date1 = format_date(date_arr)
+                b = datetime.datetime.strptime(date1, '%Y-%m-%d')
+                ctime = datetime.datetime.now()
+                if (ctime - b).days < 0:
+                    print(f'{date1} is avible because {date1} is not before current date')
+                dic[current_arr[1]] = date1
             elif current_arr[0] == '1' and current_arr[1] in tags_list:
                 if current_arr[1] in tags_dict["DATE"]:
                     tmp = current_arr[1]
@@ -165,55 +171,6 @@ def read_ged_data(file):
                     doc[current_tag].append(dic)
 
         return doc
-
-
-# US29: List all deceased individuals in a GEDCOM file
-# Prints deceased people's list
-# Lingweng Kong
-def list_deceased():
-    """Prints deceased people's list"""
-    current_dic = {}
-    print("User_Story_29: List all deceased individuals in a GEDCOM file")
-    for value in individuals.values():
-        if str(value["DEAT"]) != "NA" and (value["ALIVE"]):
-            anomaly_array.append(
-                "ERROR: INDIVIDUAL: US29: {}: Person is alive but has Death Date {}".format(value["NAME"],
-                                                                                            value["DEAT"]))
-            print("ERROR: INDIVIDUAL: US29: Person {} is alive but has Death Date {}".format(value["NAME"],
-                                                                                             value["DEAT"]))
-        elif str(value["DEAT"]) == "NA" and (not value["ALIVE"]):
-            anomaly_array.append(
-                "ERROR: INDIVIDUAL: US29: {}: Person is dead but has no Death Date".format(value["DEAT"]))
-            print("ERROR: INDIVIDUAL: US29: {}: Person is dead but has no Death Date".format(value["INDI"]))
-        elif not value["ALIVE"]:
-            current_dic[value["INDI"]] = value
-            # Use pretty table module to print out the results
-    allFields = ["ID", "Name", "Gender", "Birthday", "Age", "Alive", "Death"]
-    tagNames = ["INDI", "NAME", "SEX", "BIRT", "AGE", "ALIVE", "DEAT"]
-    print_table("US29: Deceased People Table", allFields, tagNames, current_dic)
-
-
-# US07: Death should be less than 150 years after birth for dead people, and current date should be less than 150
-# years after birth for all living people
-# Less then 150 years old
-# Lingweng Kong
-def is_age_legal():
-    """ Less then 150 years old """
-    for indivisual_id in individuals:
-        indi = individuals[indivisual_id]
-
-        if "AGE" in indi:
-            age = indi["AGE"]
-
-            if int(age) > 150:
-                if indi["ALIVE"]:
-                    anomaly_array.append(
-                        "ANOMALY: INDIVIDUAL: US07: {indivisual_id}:"
-                        " More than 150 years old - Birth Date {indi['BIRT']}")
-                else:
-                    anomaly_array.append(
-                        "ANOMALY: INDIVIDUAL: US07: {indivisual_id}: More than 150 years old at death"
-                        " - Birth Date {indi['BIRT']}: Death Date {indi['DEAT']}")
 
 
 if __name__ == '__main__':
