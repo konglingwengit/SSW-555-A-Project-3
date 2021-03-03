@@ -100,7 +100,7 @@ def read_ged_data(file):
             elif current_arr[1] == "DATE" and flag:
                 flag = False
                 date_arr = current_arr[2:]
-                dic[tmp] = format_date(date_arr)
+                dic[current_arr[1]] = format_date(date_arr)
             elif current_arr[0] == '1' and current_arr[1] in tags_list:
                 if current_arr[1] in tags_dict["DATE"]:
                     tmp = current_arr[1]
