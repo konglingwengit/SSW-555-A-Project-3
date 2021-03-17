@@ -170,7 +170,7 @@ def read_ged_data(file):
 # US29: List all deceased individuals in a GEDCOM file
 # Prints deceased people's list
 # Lingweng Kong
-def list_deceased() -> object:
+def list_deceased():
     """Prints deceased people's list"""
     current_dic = {}
     print("User_Story_29: List all deceased individuals in a GEDCOM file")
@@ -191,17 +191,14 @@ def list_deceased() -> object:
     allFields = ["ID", "Name", "Gender", "Birthday", "Age", "Alive", "Death"]
     tagNames = ["INDI", "NAME", "SEX", "BIRT", "AGE", "ALIVE", "DEAT"]
     print_table("US29: Deceased People Table", allFields, tagNames, current_dic)
-    return "US29: Deceased People Table", allFields, tagNames, current_dic
 
 
 # US07: Death should be less than 150 years after birth for dead people, and current date should be less than 150
 # years after birth for all living people
 # Less then 150 years old
 # Lingweng Kong
-def is_age_legal() -> List:
-    """ Less then 150 years old
-    :rtype: object
-    """
+def is_age_legal():
+    """ Less then 150 years old """
     for indivisual_id in individuals:
         indi = individuals[indivisual_id]
 
@@ -217,7 +214,51 @@ def is_age_legal() -> List:
                     anomaly_array.append(
                         "ANOMALY: INDIVIDUAL: US07: {indivisual_id}: More than 150 years old at death"
                         " - Birth Date {indi['BIRT']}: Death Date {indi['DEAT']}")
-    return anomaly_array
+
+
+# US01: Dates (birth, marriage, divorce, death) should not be after the current date
+# Hengyuan Zhang
+def date_bef_now():
+    """ store date in individuals and return error list"""
+    list_error = []
+    for indivisual_id in individuals:
+        indi = individuals[indivisual_id]
+        if "BIRT" in indi:
+            datestr = indi["BIRT"]
+        elif "DEAT" in indi:
+            datestr = indi["DEAT"]
+        elif "DIV" in indi:
+            datestr = indi["DIV"]
+        elif "MARR" in indi:
+            datestr = indi["MARR"]
+        else:
+            continue
+        current_date = datetime.datetime.now()
+        date = datetime.datetime.strptime(datestr, '%Y-%m-%d')
+        if (current_date - date).days < 0:
+            log = indi + "has a inavilable date:" + datestr
+            list_error.append(log)
+    return list_error
+
+# US02: Birth should occur before marriage of an individual
+# Hengyuan Zhang
+def bir_bef_mar():
+    """ store birth date and marriage in individuals and return error list"""
+    list_error = []
+    for indivisual_id in individuals:
+        indi = individuals[indivisual_id]
+        if "BIRT" in indi and "MARR" in indi:
+            bir_date_str = indi["BIRT"]
+            mar_date_str = indi["MARR"]
+            bir_date = datetime.datetime.strptime(bir_date_str, '%Y-%m-%d')
+            mar_date = datetime.datetime.strptime(mar_date_str, '%Y-%m-%d')
+            if(bir_date - mar_date).days >= 0:
+                log = indi + "has a inavilable date: Birth date is after marriage date."
+                list_error.append(log)
+        else:
+            log = indi + "doesn't have marriage date."
+            list_error.append(log)
+    return list_error
 
 
 if __name__ == '__main__':
@@ -252,4 +293,3 @@ if __name__ == '__main__':
     with open("output.txt", "w+") as f:
         f.write(str(indi_table))
         f.write(str(fam_table))
-
