@@ -1,5 +1,6 @@
 import unittest
 from sprint_1 import list_deceased, is_age_legal
+from sprint_1 import bir_bef_mar, date_bef_now
 from prettytable import PrettyTable
 from unittest.mock import MagicMock as Mock, patch
 
@@ -17,6 +18,16 @@ class TestSprint1(unittest.TestCase):
         """as all ages of all persons are legal"""
         lst = []
         self.assertListEqual(is_age_legal(), lst)
+
+    def test_date_bef_now(self):
+        """ Test all date is before now """
+        list_log = []
+        self.assertListEqual(date_bef_now(), list_log)
+
+    def test_bir_bef_mar(self):
+        """ Test if there both have birth date and marriage date, birth is before marriage """
+        list_log = []
+        self.assertListEqual(bir_bef_mar(), list_log)
 
 
 if __name__ == '__main__':
