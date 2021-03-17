@@ -191,7 +191,7 @@ def list_deceased():
     allFields = ["ID", "Name", "Gender", "Birthday", "Age", "Alive", "Death"]
     tagNames = ["INDI", "NAME", "SEX", "BIRT", "AGE", "ALIVE", "DEAT"]
     print_table("US29: Deceased People Table", allFields, tagNames, current_dic)
-
+    return "US29: Deceased People Table", allFields, tagNames, current_dic
 
 # US07: Death should be less than 150 years after birth for dead people, and current date should be less than 150
 # years after birth for all living people
@@ -214,7 +214,7 @@ def is_age_legal():
                     anomaly_array.append(
                         "ANOMALY: INDIVIDUAL: US07: {indivisual_id}: More than 150 years old at death"
                         " - Birth Date {indi['BIRT']}: Death Date {indi['DEAT']}")
-
+    return anomaly_array
 
 # US01: Dates (birth, marriage, divorce, death) should not be after the current date
 # Hengyuan Zhang
