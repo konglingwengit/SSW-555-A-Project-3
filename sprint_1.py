@@ -170,7 +170,7 @@ def read_ged_data(file):
 # US29: List all deceased individuals in a GEDCOM file
 # Prints deceased people's list
 # Lingweng Kong
-def list_deceased():
+def list_deceased() -> object:
     """Prints deceased people's list"""
     current_dic = {}
     print("User_Story_29: List all deceased individuals in a GEDCOM file")
@@ -191,14 +191,17 @@ def list_deceased():
     allFields = ["ID", "Name", "Gender", "Birthday", "Age", "Alive", "Death"]
     tagNames = ["INDI", "NAME", "SEX", "BIRT", "AGE", "ALIVE", "DEAT"]
     print_table("US29: Deceased People Table", allFields, tagNames, current_dic)
+    return "US29: Deceased People Table", allFields, tagNames, current_dic
 
 
 # US07: Death should be less than 150 years after birth for dead people, and current date should be less than 150
 # years after birth for all living people
 # Less then 150 years old
 # Lingweng Kong
-def is_age_legal():
-    """ Less then 150 years old """
+def is_age_legal() -> List:
+    """ Less then 150 years old
+    :rtype: object
+    """
     for indivisual_id in individuals:
         indi = individuals[indivisual_id]
 
@@ -214,6 +217,7 @@ def is_age_legal():
                     anomaly_array.append(
                         "ANOMALY: INDIVIDUAL: US07: {indivisual_id}: More than 150 years old at death"
                         " - Birth Date {indi['BIRT']}: Death Date {indi['DEAT']}")
+    return anomaly_array
 
 
 if __name__ == '__main__':
@@ -248,3 +252,4 @@ if __name__ == '__main__':
     with open("output.txt", "w+") as f:
         f.write(str(indi_table))
         f.write(str(fam_table))
+
