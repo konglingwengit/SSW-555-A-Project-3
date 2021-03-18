@@ -261,7 +261,7 @@ def bir_bef_mar():
     return list_error
 
 
-  print
+
 
 if __name__ == '__main__':
     # read file according to conditions
