@@ -219,6 +219,8 @@ def is_age_legal():
                         "ANOMALY: INDIVIDUAL: US07: {indivisual_id}: More than 150 years old at death"
                         " - Birth Date {indi['BIRT']}: Death Date {indi['DEAT']}")
 
+  print
+
 if __name__ == '__main__':
     # read file according to conditions
     ged_data = read_ged_data("test_data.ged")
