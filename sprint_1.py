@@ -260,6 +260,48 @@ def bir_bef_mar():
             list_error.append(log)
     return list_error
 
+# USO3: Birth before death
+# Birth should occur before death of an individual
+# Muyang Li
+def birth_before_death():
+    """ store birth date and death in individuals and return error list"""
+    list_error =[]
+    for indivisual_id in individuals:
+        indi = individuals[indivisual_id]
+        if "BIRT" in indi and "DEAT" in indi:
+            bir_date = indi["BIRT"]
+            death_date = indi["DEAT"]
+            bir_date = datetime.datetime.strptime(bir_date, '%Y-%m-%d')
+            death_date = datetime.datetime.strptime(death_date, '%Y-%m-%d')
+            if (bir_date - death_date).days >= 0:
+                log = indi + "has a wrong date: death date is before birth date."
+                list_error.append(log)
+        else:
+            log = indi + "doesn't have dead."
+            list_error.append(log)
+    return list_error
+
+# US06: Divorce before death
+# Divorce can only occur before death of both spouses
+# Muyang Li
+def divorce_before_death():
+    """ store divorce date and death in individuals and return error list"""
+    list_error = []
+    for indivisual_id in individuals:
+        indi = individuals[indivisual_id]
+        if "DIV" in indi and "DEAT" in indi:
+            div_date = indi["DIV"]
+            death_date = indi["DEAT"]
+            div_date = datetime.datetime.strptime(div_date, '%Y-%m-%d')
+            death_date = datetime.datetime.strptime(death_date, '%Y-%m-%d')
+            if (div_date - death_date).days >= 0:
+                log = indi + "has a wrong date: divorce date is after death date."
+                list_error.append(log)
+        else:
+            log = indi + "doesn't have dead."
+            list_error.append(log)
+    return list_error
+
 
 
 
