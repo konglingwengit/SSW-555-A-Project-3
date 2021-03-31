@@ -304,6 +304,34 @@ def divorce_before_death():
 
 
 
+#USID: 15
+# This function checks sibling count
+def check_sibling_count():
+    for family_id in family_dic:
+        family = family_dic[family_id]
+        if (len(family["FAM_CHILD"]) > 15):
+            anomaly_array.append("ANOMALY: FAMILY: US16: {}: Family has {} siblings which is more than 15 siblings")
+
+
+# User_Story_30: List all living married people in a GEDCOM file
+# Prints out a table with all the living married people's information
+def listLivingMarried():
+    current_dic = {}
+    print("User_Story_30: List all living married people in a GEDCOM file")
+    for value in individuals.values():
+        if (value["ALIVE"] and value["SPOUSE"] != "NA"):
+            current_dic[value["INDI"]] = value
+        elif (not value["ALIVE"] and value["SPOUSE"] != "NA"):
+            anomaly_array.append(
+                "ERROR: INDIVIDUAL: US30: {}: Deceased Person is married to Person {}".format(value["INDI"],
+                                                                                              "".join(value["SPOUSE"])))
+            print("ERROR: INDIVIDUAL: US30: {}: Deceased Person is married to Person {}".format(value["INDI"], "".join(
+                value["SPOUSE"])))
+    # Use pretty table module to print out the results
+    allFields = ["ID", "Name", "Gender", "Birthday", "Age", "Alive", "Death", "Spouse"]
+    tagNames = ["INDI", "NAME", "SEX", "BIRT", "AGE", "ALIVE", "DEAT", "SPOUSE"]
+    print_table("US30: Living & Married People Table", allFields, tagNames, current_dic)
+
 
 if __name__ == '__main__':
     # read file according to conditions
