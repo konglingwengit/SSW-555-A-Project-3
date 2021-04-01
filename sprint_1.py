@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, time
 from typing import Dict, Any, List
 from prettytable import PrettyTable
 
@@ -382,9 +382,12 @@ def birth_before_marriage_of_parents():
                 if "Birthday" in ged_data["INDI"] and "Married" in ged_data["FAM"]:
                     bir_date = children["BIRT"]
                     mar_date = fam["MARR"]
-                    bir_date = datetime.datetime.strptime(bir_date, '%Y-%m-%d')
-                    mar_date = datetime.datetime.strptime(mar_date, '%Y-%m-%d')
-                    if (bir_date - mar_date).days < -9:
+                    bir_date = time.strftime("%Y-%m-%d %H:%M:%s", time.localtime())
+                    mar_date = time.strftime("%Y-%m-%d %H:%M:%s", time.localtime())
+                    bir_date = datetime.datetime.strptime(bir_date, "%Y-%m-%d %H:%M:%S")
+                    mar_date = datetime.datetime.strptime(mar_date, "%Y-%m-%d %H:%M:%S")
+
+                    if (bir_date - mar_date).months < -9:
                         return True
                     else:
                         return False
