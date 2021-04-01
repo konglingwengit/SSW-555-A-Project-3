@@ -1,6 +1,6 @@
 import unittest
-from sprint_1 import list_deceased, is_age_legal
-from sprint_1 import bir_bef_mar, date_bef_now
+from sprint_1 import list_deceased, is_age_legal, unique_ID
+from sprint_1 import bir_bef_mar, date_bef_now, unique_birthday
 from prettytable import PrettyTable
 from unittest.mock import MagicMock as Mock, patch
 
@@ -28,7 +28,12 @@ class TestSprint1(unittest.TestCase):
         """ Test if there both have birth date and marriage date, birth is before marriage """
         list_log = []
         self.assertListEqual(bir_bef_mar(), list_log)
-
+    def test_unique_birthday(self):
+        list_log = []
+        self.assertListEqual(unique_birthday(), list_log)
+    def test_unique_ID(self):
+        list_log = []
+        self.assertListEqual(unique_ID(), list_log)
 
 if __name__ == '__main__':
     """ Run test cases on startup """

@@ -303,6 +303,36 @@ def divorce_before_death():
     return list_error
 
 
+# US22: All individual IDs should be unique
+# and all family IDs should be unique
+# Yikan Wang Sprint2
+def unique_ID():
+    result = set()
+    filter = set()
+    print('hello')
+    for fam in ged_data["FAM"]:
+        if fam['FAM'] in filter:
+            result.add(fam['FAM'])
+        filter.add(fam['FAM'])
+
+    for indi in ged_data["INDI"]:
+        if indi['INDI'] in filter:
+            result.add(indi['INDI'])
+        filter.add(indi['INDI'])
+    anomaly_array.append(f"ANOMALY: repetitve IDs{result}")
+#US 23 Yikan Sprint2
+#No more than one individual with the
+# same name and birth date should appear
+# in a GEDCOM file
+def unique_birthday():
+    result = set()
+    filter = set()
+
+    for indi in ged_data["INDI"]:
+        if (indi['INDI'],indi['BIRT']) in filter:
+            result.add((indi['INDI'],indi['BIRT']))
+        filter.add((indi['INDI'],indi['BIRT']))
+    anomaly_array.append(f'repetitve name&birthdays{result}')
 
 #USID: 15
 # This function checks sibling count
@@ -337,31 +367,45 @@ if __name__ == '__main__':
     # read file according to conditions
     ged_data = read_ged_data("test_data.ged")
 
-    for family in ged_data["FAM"]:
-        husband = family["HUSB"] if "HUSB" in family else []
-
+    print('ged_data')
+    print(ged_data)
+    '''
+        for family in ged_data["FAM"]:
+            #print(f'family: {family}')
+            husband = family["HUSB"] if "HUSB" in family else []
+            #print(f'husband:{husband}') # does not make any changes
+    '''
     indi_table = PrettyTable()
     indi_table.field_names = ["ID", "Name", "Gender", "Birthday", "Age", "Alive", "Death", "Child", "Spouse"]
+
     fam_table = PrettyTable()
     fam_table.field_names = ["ID", "Married", "Divorced", "Husband ID", "Husband Name", "Wife ID", "Wife Name",
                              "Children"]
 
     for individual in ged_data["INDI"]:
+        print(f'Individual: {individual}')
         indi_id = individual["INDI"].strip('@')
         indi_table.add_row([indi_id, individual["NAME"], individual["SEX"], individual["BIRT"], individual["AGE"],
                             individual["ALIVE"], individual["DEAT"], (",".join(individual["INDI_CHILD"])),
                             (",".join(individual["SPOUSE"]))])
 
     for family in ged_data["FAM"]:
+        print(f'FAM: {family}')
+
         fam_id = family["FAM"].strip('@')
         fam_table.add_row([fam_id, family["MARR"], family["DIV"], family["HUSB"].strip('@'), family["HUSB_NAME"],
                            family["WIFE"].strip('@'), family["WIFE_NAME"], ({",".join(family["FAM_CHILD"])})])
-
+    unique_birthday()
     # print tables
-    print(indi_table)
-    print(fam_table)
-
+    # print(indi_table)
+    # print(fam_table)
+    # print('test results')
+    # print(bir_bef_mar)
     # output to file
     with open("output.txt", "w+") as f:
         f.write(str(indi_table))
         f.write(str(fam_table))
+
+    # Below are for tests
+    #
+    # print(format_date([17, FEB, 2021]))
