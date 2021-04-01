@@ -363,6 +363,67 @@ def listLivingMarried():
     print_table("US30: Living & Married People Table", allFields, tagNames, current_dic)
 
 
+# US08: Birth before marriage of parents
+# Children should be born after marriage of parents (and not more than 9 months after their divorce)
+# Muyang Li
+def birth_before_marriage_of_parents():
+    """" store children's birth date and parents' marriage date in individuals and return error List"""
+    for fam in ged_data["FAM"]:
+        # print(people.get_string(fields=["Name"]))
+        if fam["FAM_CHILD"][0] != 'NA':
+            # find children
+            chId = fam["FAM_CHILD"][0]
+            # print(chId)
+            for children in ged_data["INDI"]:
+                # if children['INDI'] == "@" + chId + "@":
+                    # print(children["BIRT"])
+                    # print(fam["MARR"])
+                    # compare children's birth date and parents's marriage date
+                if "Birthday" in ged_data["INDI"] and "Married" in ged_data["FAM"]:
+                    bir_date = children["BIRT"]
+                    mar_date = fam["MARR"]
+                    bir_date = datetime.datetime.strptime(bir_date, '%Y-%m-%d')
+                    mar_date = datetime.datetime.strptime(mar_date, '%Y-%m-%d')
+                    if (bir_date - mar_date).days < -9:
+                        return True
+                    else:
+                        return False
+
+
+# US42: Reject illegitimate dates
+# All dates should be legitimate dates for the months specified
+# Muyang Li
+def rejectIllegitimateDates():
+    list_error = []
+    for indivisual_id in individuals:
+        indi = individuals[indivisual_id]
+        if "BIRT" in indi and "DEAT" in indi:
+            bir_date = indi["BIRT"]
+            death_date = indi["DEAT"]
+            bir_date = datetime.datetime.strptime(bir_date, '%Y-%m-%d')
+            death_date = datetime.datetime.strptime(death_date, '%Y-%m-%d')
+            if indi["BIRT"] | indi["DEAT"] is None:
+                log = indi + "has a wrong date: Date is not illegitimate date."
+                list_error.append(log)
+            else:
+                log = indi + "has legitimate dates."
+                list_error.append(log)
+            return list_error
+
+        if "MARR" in indi and "DIV" in indi:
+            mar_date = indi["MARR"]
+            div_date = indi["DIV"]
+            mar_date = datetime.datetime.strptime(mar_date, '%Y-%m-%d')
+            div_date = datetime.datetime.strptime(div_date, '%Y-%m-%d')
+            if indi["MARR"] | indi["DIV"] is None:
+                log = indi + "has a wrong date: Date is not illegitimate date."
+                list_error.append(log)
+            else:
+                log = indi + "has legitimate dates."
+                list_error.append(log)
+            return list_error
+
+
 if __name__ == '__main__':
     # read file according to conditions
     ged_data = read_ged_data("test_data.ged")
