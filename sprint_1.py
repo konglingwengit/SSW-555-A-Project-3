@@ -15,6 +15,14 @@ ged_data = {}
 individuals: Dict[Any, Any] = {}
 
 
+def create_individuals_map():
+    global individuals
+    individuals = {}
+
+    for individual in document["INDI"]:
+        individuals[individual["INDI"]] = individual
+
+
 def get_month_num(shortMonth):
     """:returns general number of given month"""
     return {
@@ -193,6 +201,7 @@ def list_deceased():
     print_table("US29: Deceased People Table", allFields, tagNames, current_dic)
     return "US29: Deceased People Table", allFields, tagNames, current_dic
 
+
 # US07: Death should be less than 150 years after birth for dead people, and current date should be less than 150
 # years after birth for all living people
 # Less then 150 years old
@@ -215,6 +224,7 @@ def is_age_legal():
                         "ANOMALY: INDIVIDUAL: US07: {indivisual_id}: More than 150 years old at death"
                         " - Birth Date {indi['BIRT']}: Death Date {indi['DEAT']}")
     return anomaly_array
+
 
 # US01: Dates (birth, marriage, divorce, death) should not be after the current date
 # Hengyuan Zhang
@@ -240,6 +250,7 @@ def date_bef_now():
             list_error.append(log)
     return list_error
 
+
 # US02: Birth should occur before marriage of an individual
 # Hengyuan Zhang
 def bir_bef_mar():
@@ -252,7 +263,7 @@ def bir_bef_mar():
             mar_date_str = indi["MARR"]
             bir_date = datetime.datetime.strptime(bir_date_str, '%Y-%m-%d')
             mar_date = datetime.datetime.strptime(mar_date_str, '%Y-%m-%d')
-            if(bir_date - mar_date).days >= 0:
+            if (bir_date - mar_date).days >= 0:
                 log = indi + "has a inavilable date: Birth date is after marriage date."
                 list_error.append(log)
         else:
@@ -260,12 +271,13 @@ def bir_bef_mar():
             list_error.append(log)
     return list_error
 
+
 # USO3: Birth before death
 # Birth should occur before death of an individual
 # Muyang Li
 def birth_before_death():
     """ store birth date and death in individuals and return error list"""
-    list_error =[]
+    list_error = []
     for indivisual_id in individuals:
         indi = individuals[indivisual_id]
         if "BIRT" in indi and "DEAT" in indi:
@@ -280,6 +292,7 @@ def birth_before_death():
             log = indi + "doesn't have dead."
             list_error.append(log)
     return list_error
+
 
 # US06: Divorce before death
 # Divorce can only occur before death of both spouses
@@ -303,38 +316,41 @@ def divorce_before_death():
     return list_error
 
 
-# US22: All individual IDs should be unique
-# and all family IDs should be unique
-# Yikan Wang Sprint2
-def unique_ID():
-    result = set()
-    filter = set()
-    print('hello')
-    for fam in ged_data["FAM"]:
-        if fam['FAM'] in filter:
-            result.add(fam['FAM'])
-        filter.add(fam['FAM'])
+#
+# # US22: All individual IDs should be unique
+# # and all family IDs should be unique
+# # Yikan Wang Sprint2
+# def unique_ID():
+#     result = set()
+#     filter = set()
+#     print('hello')
+#     for fam in ged_data["FAM"]:
+#         if fam['FAM'] in filter:
+#             result.add(fam['FAM'])
+#         filter.add(fam['FAM'])
+#
+#     for indi in ged_data["INDI"]:
+#         if indi['INDI'] in filter:
+#             result.add(indi['INDI'])
+#         filter.add(indi['INDI'])
+#     anomaly_array.append(f"ANOMALY: repetitve IDs{result}")
+#
+#
+# # US 23 Yikan Sprint2
+# # No more than one individual with the
+# # same name and birth date should appear
+# # in a GEDCOM file
+# def unique_birthday():
+#     result = set()
+#     filter = set()
+#     for indi in ged_data["INDI"]:
+#         if (indi['INDI'], indi['BIRT']) in filter:
+#             result.add((indi['INDI'], indi['BIRT']))
+#         filter.add((indi['INDI'], indi['BIRT']))
+#     anomaly_array.append(f'repetitve name&birthdays{result}')
 
-    for indi in ged_data["INDI"]:
-        if indi['INDI'] in filter:
-            result.add(indi['INDI'])
-        filter.add(indi['INDI'])
-    anomaly_array.append(f"ANOMALY: repetitve IDs{result}")
-#US 23 Yikan Sprint2
-#No more than one individual with the
-# same name and birth date should appear
-# in a GEDCOM file
-def unique_birthday():
-    result = set()
-    filter = set()
 
-    for indi in ged_data["INDI"]:
-        if (indi['INDI'],indi['BIRT']) in filter:
-            result.add((indi['INDI'],indi['BIRT']))
-        filter.add((indi['INDI'],indi['BIRT']))
-    anomaly_array.append(f'repetitve name&birthdays{result}')
-
-#USID: 15
+# USID: 15
 # This function checks sibling count
 def check_sibling_count():
     for family_id in family_dic:
@@ -343,15 +359,19 @@ def check_sibling_count():
             anomaly_array.append("ANOMALY: FAMILY: US16: {}: Family has {} siblings which is more than 15 siblings")
 
 
+
 # User_Story_30: List all living married people in a GEDCOM file
 # Prints out a table with all the living married people's information
 def listLivingMarried():
+    global individuals
+    print(individuals)
     current_dic = {}
     print("User_Story_30: List all living married people in a GEDCOM file")
     for value in individuals.values():
-        if (value["ALIVE"] and value["SPOUSE"] != "NA"):
+        print(value)
+        if value["ALIVE"] and value["SPOUSE"] != "NA":
             current_dic[value["INDI"]] = value
-        elif (not value["ALIVE"] and value["SPOUSE"] != "NA"):
+        elif not value["ALIVE"] and value["SPOUSE"] != "NA":
             anomaly_array.append(
                 "ERROR: INDIVIDUAL: US30: {}: Deceased Person is married to Person {}".format(value["INDI"],
                                                                                               "".join(value["SPOUSE"])))
@@ -360,75 +380,12 @@ def listLivingMarried():
     # Use pretty table module to print out the results
     allFields = ["ID", "Name", "Gender", "Birthday", "Age", "Alive", "Death", "Spouse"]
     tagNames = ["INDI", "NAME", "SEX", "BIRT", "AGE", "ALIVE", "DEAT", "SPOUSE"]
-    print_table("US30: Living & Married People Table", allFields, tagNames, current_dic)
-
-
-# US08: Birth before marriage of parents
-# Children should be born after marriage of parents (and not more than 9 months after their divorce)
-# Muyang Li
-def birth_before_marriage_of_parents():
-    """" store children's birth date and parents' marriage date in individuals and return error List"""
-    for fam in ged_data["FAM"]:
-        # print(people.get_string(fields=["Name"]))
-        if fam["FAM_CHILD"][0] != 'NA':
-            # find children
-            chId = fam["FAM_CHILD"][0]
-            # print(chId)
-            for children in ged_data["INDI"]:
-                # if children['INDI'] == "@" + chId + "@":
-                    # print(children["BIRT"])
-                    # print(fam["MARR"])
-                    # compare children's birth date and parents's marriage date
-                if "Birthday" in ged_data["INDI"] and "Married" in ged_data["FAM"]:
-                    bir_date = children["BIRT"]
-                    mar_date = fam["MARR"]
-                    bir_date = time.strftime("%Y-%m-%d %H:%M:%s", time.localtime())
-                    mar_date = time.strftime("%Y-%m-%d %H:%M:%s", time.localtime())
-                    bir_date = datetime.datetime.strptime(bir_date, "%Y-%m-%d %H:%M:%S")
-                    mar_date = datetime.datetime.strptime(mar_date, "%Y-%m-%d %H:%M:%S")
-
-                    if (bir_date - mar_date).months < -9:
-                        return True
-                    else:
-                        return False
-
-
-# US42: Reject illegitimate dates
-# All dates should be legitimate dates for the months specified
-# Muyang Li
-def rejectIllegitimateDates():
-    list_error = []
-    for indivisual_id in individuals:
-        indi = individuals[indivisual_id]
-        if "BIRT" in indi and "DEAT" in indi:
-            bir_date = indi["BIRT"]
-            death_date = indi["DEAT"]
-            bir_date = datetime.datetime.strptime(bir_date, '%Y-%m-%d')
-            death_date = datetime.datetime.strptime(death_date, '%Y-%m-%d')
-            if indi["BIRT"] | indi["DEAT"] is None:
-                log = indi + "has a wrong date: Date is not illegitimate date."
-                list_error.append(log)
-            else:
-                log = indi + "has legitimate dates."
-                list_error.append(log)
-            return list_error
-
-        if "MARR" in indi and "DIV" in indi:
-            mar_date = indi["MARR"]
-            div_date = indi["DIV"]
-            mar_date = datetime.datetime.strptime(mar_date, '%Y-%m-%d')
-            div_date = datetime.datetime.strptime(div_date, '%Y-%m-%d')
-            if indi["MARR"] | indi["DIV"] is None:
-                log = indi + "has a wrong date: Date is not illegitimate date."
-                list_error.append(log)
-            else:
-                log = indi + "has legitimate dates."
-                list_error.append(log)
-            return list_error
+    return ["US30: Living & Married People Table", allFields, tagNames, current_dic]
 
 
 if __name__ == '__main__':
     # read file according to conditions
+    print(listLivingMarried())
     ged_data = read_ged_data("test_data.ged")
 
     print('ged_data')
@@ -459,7 +416,7 @@ if __name__ == '__main__':
         fam_id = family["FAM"].strip('@')
         fam_table.add_row([fam_id, family["MARR"], family["DIV"], family["HUSB"].strip('@'), family["HUSB_NAME"],
                            family["WIFE"].strip('@'), family["WIFE_NAME"], ({",".join(family["FAM_CHILD"])})])
-    unique_birthday()
+    # unique_birthday()
     # print tables
     # print(indi_table)
     # print(fam_table)

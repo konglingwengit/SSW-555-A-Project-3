@@ -1,9 +1,8 @@
 import unittest
-from sprint_1 import list_deceased, is_age_legal, unique_ID, birth_before_death, divorce_before_death
-from sprint_1 import bir_bef_mar, date_bef_now, unique_birthday
+from sprint_1 import *
 from prettytable import PrettyTable
 from unittest.mock import MagicMock as Mock, patch
-
+import sprint_1
 
 class TestSprint1(unittest.TestCase):
 
@@ -33,17 +32,31 @@ class TestSprint1(unittest.TestCase):
         """ Test if there both have birth date and death date, birth is before death """
         list_log = []
         self.assertListEqual(birth_before_death(), list_log)
+
     def test_divorce_before_death(self):
         """ Test if there both have divorce date and death date, divorce is before death """
         list_log = []
         self.assertListEqual(divorce_before_death(), list_log)
 
-    def test_unique_birthday(self):
-        list_log = []
-        self.assertListEqual(unique_birthday(), list_log)
-    def test_unique_ID(self):
-        list_log = []
-        self.assertListEqual(unique_ID(), list_log)
+    #
+    # def test_unique_birthday(self):
+    #     list_log = []
+    #     self.assertListEqual(unique_birthday(), list_log)
+    # def test_unique_ID(self):
+    #     list_log = []
+    #     self.assertListEqual(unique_ID(), list_log)
+    # User_Story_30: List all living married people in a GEDCOM file
+    # Success test
+    # @mock.patch("sprint4.printTable")
+    def test_list_living_married_individuals_success(self):
+        allFields = ["ID", "Name", "Gender", "Birthday", "Age", "Alive", "Death", "Spouse"]
+        tagNames = ["INDI", "NAME", "SEX", "BIRT", "AGE", "ALIVE", "DEAT", "SPOUSE"]
+        current_dic = {}
+        self.assertListEqual(["US30: Living & Married People Table", allFields, tagNames, current_dic],
+                             listLivingMarried())
+
+    def test_less_than_15_siblings(self):
+        self.assertEqual(len(anomaly_array), 0)
 
 if __name__ == '__main__':
     """ Run test cases on startup """
