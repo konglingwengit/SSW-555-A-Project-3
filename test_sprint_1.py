@@ -38,6 +38,14 @@ class TestSprint1(unittest.TestCase):
         list_log = []
         self.assertListEqual(divorce_before_death(), list_log)
 
+    def test_siblingsnotmarry(self):
+        """ Test if Sibling was married one another sibling"""
+        list_log = []
+        self.assertListEqual(siblingsnotmarry(), list_log)
+    def test_list_recent_births(self):
+        """ Test if List all people in a GEDCOM file who were born in the last 30 days"""
+        list_log = []
+        self.assertListEqual(list_recent_births(), list_log)
     #
     # def test_unique_birthday(self):
     #     list_log = []

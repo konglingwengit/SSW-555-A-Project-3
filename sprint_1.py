@@ -316,6 +316,67 @@ def divorce_before_death():
     return list_error
 
 
+# US08: Birth before marriage of parents
+# Children should be born after marriage of parents (and not more than 9 months after their divorce)
+# Muyang Li
+def birth_before_marriage_of_parents():
+    """" store children's birth date and parents' marriage date in individuals and return error List"""
+    for fam in ged_data["FAM"]:
+        # print(people.get_string(fields=["Name"]))
+        if fam["FAM_CHILD"][0] != 'NA':
+            # find children
+            chId = fam["FAM_CHILD"][0]
+            # print(chId)
+            for children in ged_data["INDI"]:
+                # if children['INDI'] == "@" + chId + "@":
+                    # print(children["BIRT"])
+                    # print(fam["MARR"])
+                    # compare children's birth date and parents's marriage date
+                if "Birthday" in ged_data["INDI"] and "Married" in ged_data["FAM"]:
+                    bir_date = children["BIRT"]
+                    mar_date = fam["MARR"]
+                    bir_date = datetime.datetime.strptime(bir_date, '%Y-%m-%d')
+                    mar_date = datetime.datetime.strptime(mar_date, '%Y-%m-%d')
+                    if (bir_date - mar_date).days < -9:
+                        return True
+                    else:
+                        return False
+
+
+# US42: Reject illegitimate dates
+# All dates should be legitimate dates for the months specified
+# Muyang Li
+def rejectIllegitimateDates():
+    list_error = []
+    for indivisual_id in individuals:
+        indi = individuals[indivisual_id]
+        if "BIRT" in indi and "DEAT" in indi:
+            bir_date = indi["BIRT"]
+            death_date = indi["DEAT"]
+            bir_date = datetime.datetime.strptime(bir_date, '%Y-%m-%d')
+            death_date = datetime.datetime.strptime(death_date, '%Y-%m-%d')
+            if indi["BIRT"] | indi["DEAT"] is None:
+                log = indi + "has a wrong date: Date is not illegitimate date."
+                list_error.append(log)
+            else:
+                log = indi + "has legitimate dates."
+                list_error.append(log)
+            return list_error
+
+        if "MARR" in indi and "DIV" in indi:
+            mar_date = indi["MARR"]
+            div_date = indi["DIV"]
+            mar_date = datetime.datetime.strptime(mar_date, '%Y-%m-%d')
+            div_date = datetime.datetime.strptime(div_date, '%Y-%m-%d')
+            if indi["MARR"] | indi["DIV"] is None:
+                log = indi + "has a wrong date: Date is not illegitimate date."
+                list_error.append(log)
+            else:
+                log = indi + "has legitimate dates."
+                list_error.append(log)
+            return list_error
+
+
 #
 # # US22: All individual IDs should be unique
 # # and all family IDs should be unique
@@ -383,6 +444,44 @@ def listLivingMarried():
     return ["US30: Living & Married People Table", allFields, tagNames, current_dic]
 
 
+# US18: Siblings should not marry
+# Siblings should not marry one another
+# Muyang Li
+def siblingsnotmarry():
+    """ Siblings should not marry one another """
+    for fam in ged_data["FAM"]:
+        if fam["FAM_CHILD"][0] != 'NA':
+            # find children
+            chId = fam["FAM_CHILD"][0]
+            #print(chId)
+        # if family["FAM_CHILD"] in family:
+        #     child = res['CHILDREN']
+        #     childd = list(x for x in indi if x["ID"] in child)
+        #     # print childd
+    for sibling in chId:
+        sib_fam = next((x for x in family if x["HUSB"] == sibling["FAM_CHILD"]), None)
+        #print(sib_fam)
+        if sib_fam and sib_fam["WIFE"] in chId:
+            anomaly_array.append("ANOMALY: Sibling is married to another sibling")
+
+
+# US35: List recent births
+# List all people in a GEDCOM file who were born in the last 30 days
+# Muyang Li
+def list_recent_births():
+    global individuals
+    print(individuals)
+    current_dic = {}
+    print("User_Story_30:List all people in a GEDCOM file who were born in the last 30 days")
+    for people in individuals:
+        if "birthday" in individuals and individuals["birthday"] is not None:
+            birth_date = datetime.strptime(individuals["birthday"], "%Y-%m-%d %H:%M:%S")
+            delta = datetime.date(datetime.now()) - datetime.date(birth_date)
+            if (delta.days < 30 and delta.days >= 0):
+                print('\t' + individuals["ID"] + '\t\t\t%-10s' % individuals["NAME"][0] + " %-10s" % (individuals["NAME"][1]).strip(
+                    "/") + '\t\t' + individuals['birthday'] + '\t\t' + str(delta.days))
+
+
 if __name__ == '__main__':
     # read file according to conditions
     print(listLivingMarried())
@@ -423,6 +522,8 @@ if __name__ == '__main__':
     # print('test results')
     # print(bir_bef_mar)
     # output to file
+
+    siblingsnotmarry()
     with open("output.txt", "w+") as f:
         f.write(str(indi_table))
         f.write(str(fam_table))
