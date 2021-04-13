@@ -66,6 +66,15 @@ class TestSprint1(unittest.TestCase):
     def test_less_than_15_siblings(self):
         self.assertEqual(len(anomaly_array), 0)
 
+
+    def test_large_age_diff(self):
+        self.assertEqual(len(anomaly_array), 0)
+
+    def test_is_marriage_before_divorce(self):
+        self.assertEqual(len(is_marriage_before_divorce()), 0)
+
+
+
 if __name__ == '__main__':
     """ Run test cases on startup """
     unittest.main(exit=False, verbosity=2)

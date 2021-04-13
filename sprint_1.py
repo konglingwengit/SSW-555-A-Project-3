@@ -413,6 +413,7 @@ def rejectIllegitimateDates():
 
 # USID: 15
 # This function checks sibling count
+# lingwen Kong
 def check_sibling_count():
     for family_id in family_dic:
         family = family_dic[family_id]
@@ -423,6 +424,7 @@ def check_sibling_count():
 
 # User_Story_30: List all living married people in a GEDCOM file
 # Prints out a table with all the living married people's information
+# lingwen Kong
 def listLivingMarried():
     global individuals
     print(individuals)
@@ -480,6 +482,52 @@ def list_recent_births():
             if (delta.days < 30 and delta.days >= 0):
                 print('\t' + individuals["ID"] + '\t\t\t%-10s' % individuals["NAME"][0] + " %-10s" % (individuals["NAME"][1]).strip(
                     "/") + '\t\t' + individuals['birthday'] + '\t\t' + str(delta.days))
+
+
+# US34 List large age difference
+# this function list out large age difference between spouse
+# lingwen Kong
+def large_age_diff():
+    for value in family_dic.values():
+        # for family_id in family_dic:
+        family = value["FAM"]
+        if "husband_object" in family_dic[family]:
+            husband = family_dic[family]["husband_object"]
+            hage = int(husband["AGE"])
+        if "wife_object" in family_dic[family]:
+            wife = family_dic[family]["wife_object"]
+            wage = int(wife["AGE"])
+            agediff = hage / wage
+            if agediff >= 2 or agediff <= 0.5:
+                anomaly_array.append(
+                    "ANOMALY: FAMILY: US34: {}: Family with unique id: {} has a large spouse age difference".format(
+                        value["FAM_LINE"], value["FAM"]))
+    return anomaly_array
+
+
+# US04 - marriage before divorce
+# checking marriage after divorce
+# lingwen kong
+def is_marriage_before_divorce():
+    # Iterating through all individuals
+    for currentIndividual in individuals.values():
+        # Ignoring all individuals who weren't ever married
+        if currentIndividual['SPOUSE'] != 'NA':
+            # Iterating through all the families they were related to
+            for currentFamily in currentIndividual['SPOUSE']:
+                for checkingFamily in family_dic.values():
+                    if checkingFamily['FAM'] == currentFamily:
+                        # Ignoring all the marriages without a divorce
+                        if checkingFamily['DIV'] != 'NA':
+                            # Checking if a divorce date is before a marriage date
+                            if checkingFamily['MARR'] > checkingFamily['DIV']:
+                                anomaly_array.append(
+                                    "ANOMALY: INDIVIDUAL: US04: {}: {}: Marriage Before Divorce - Marriage Date {} - "
+                                    "Divorce Date {}".format(
+                                        checkingFamily["MARR_LINE"], currentIndividual['INDI'], checkingFamily['MARR'],
+                                        checkingFamily['DIV']))
+    return anomaly_array
+
 
 
 if __name__ == '__main__':
