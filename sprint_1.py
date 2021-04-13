@@ -523,7 +523,7 @@ if __name__ == '__main__':
     # print(bir_bef_mar)
     # output to file
 
-    siblingsnotmarry()
+
     with open("output.txt", "w+") as f:
         f.write(str(indi_table))
         f.write(str(fam_table))
