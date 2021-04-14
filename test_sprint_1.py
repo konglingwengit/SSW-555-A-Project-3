@@ -28,6 +28,11 @@ class TestSprint1(unittest.TestCase):
         list_log = []
         self.assertListEqual(bir_bef_mar(), list_log)
 
+    def test_mar_bef_div(self):
+        """ Test if there both have marriage date and divorce date, marriage is before divorce """
+        list_log = []
+        self.assertListEqual(divorce_before_death(), list_log)        
+
     def test_birth_before_death(self):
         """ Test if there both have birth date and death date, birth is before death """
         list_log = []
@@ -46,6 +51,15 @@ class TestSprint1(unittest.TestCase):
         """ Test if List all people in a GEDCOM file who were born in the last 30 days"""
         list_log = []
         self.assertListEqual(list_recent_births(), list_log)
+
+    def test_parents_not_old(self):
+        list_log = []
+        self.assertListEqual(parents_not_old(), list_log)
+
+    def test_siblings_spacing(self):
+        list_log = []
+        self.assertListEqual(siblings_spacing(), list_log)
+
     #
     # def test_unique_birthday(self):
     #     list_log = []

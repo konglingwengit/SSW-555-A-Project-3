@@ -226,7 +226,8 @@ def is_age_legal():
     return anomaly_array
 
 
-# US01: Dates (birth, marriage, divorce, death) should not be after the current date
+# US01: Dates before current date
+# Dates (birth, marriage, divorce, death) should not be after the current date
 # Hengyuan Zhang
 def date_bef_now():
     """ store date in individuals and return error list"""
@@ -251,10 +252,11 @@ def date_bef_now():
     return list_error
 
 
-# US02: Birth should occur before marriage of an individual
+# US02: Birth before marriage
+# Birth should occur before marriage of an individual
 # Hengyuan Zhang
 def bir_bef_mar():
-    """ store birth date and marriage in individuals and return error list"""
+    """ store birth and marriage date in individuals and return error list"""
     list_error = []
     for indivisual_id in individuals:
         indi = individuals[indivisual_id]
@@ -293,6 +295,49 @@ def birth_before_death():
             list_error.append(log)
     return list_error
 
+
+# US04: Marriage before divorce
+# Marriage should occur before divorce of spouses, and divorce can only occur after marriage
+# Hengyuan Zhang
+def mar_bef_div():
+    """ store marriage and divorce date in individuals and return error list"""
+    list_error = []
+    for indivisual_id in individuals:
+        indi = individuals[indivisual_id]
+        if "MARR" in indi and "DIV" in indi:
+            mar_date_str = indi["MARR"]
+            div_date_str = indi["DIV"]
+            mar_date = datetime.datetime.strptime(mar_date_str, '%Y-%m-%d')
+            div_date = datetime.datetime.strptime(div_date_str, '%Y-%m-%d')
+            if (mar_date - div_date).days >= 0:
+                log = indi + "has a inavilable date: Marriage date is after div date."
+                list_error.append(log)
+        else:
+            log = indi + "doesn't have enough date data of Marriage or Divorce."
+            list_error.append(log)
+    return list_error
+
+
+# US05: Marriage before death
+# Marriage should before death of an individual
+# Hengyuan Zhang
+def mar_bef_death():
+    """ store marriage and death date in individuals and return error list"""
+    list_error = []
+    for indivisual_id in individuals:
+        indi = individuals[indivisual_id]
+        if "MARR" in indi and "DEAT" in indi:
+            mar_date_str = indi["MARR"]
+            death_date_str = indi["DEAT"]
+            mar_date = datetime.datetime.strptime(mar_date_str, '%Y-%m-%d')
+            death_date = datetime.datetime.strptime(death_date_str, '%Y-%m-%d')
+            if (mar_date - death_date).days >= 0:
+                log = indi + "has a inavilable date: Marriage date is after death date."
+                list_error.append(log)
+        else:
+            log = indi + "doesn't have enough date data of Marriage and Death."
+            list_error.append(log)
+    return list_error
 
 # US06: Divorce before death
 # Divorce can only occur before death of both spouses
@@ -341,6 +386,63 @@ def birth_before_marriage_of_parents():
                         return True
                     else:
                         return False
+
+
+# US12: Parents not too old
+# Mother should be less than 60 years older than her children 
+# and father should be less than 80 years older than his children
+# Hengyuan Zhang
+def parents_not_old():
+    list_error = []
+    for fam in ged_data["FAM"]:
+        if fam["CHIL"] != 'NA':
+            child = fam["CHIL"]
+            husb = fam["HUSB"]
+            wife = fam["WIFE"]
+            for indivisual_id in individuals:
+                indi = individuals[indivisual_id]
+                if indi['NAME'] == child:
+                    child_birth_str = indi['BRITH']
+                if indi['NAME'] == husb:
+                    husb_birth_str = indi['BRITH']
+                if indi['NAME'] == wife:
+                    wife_birth_str = indi['BRITH']
+                child_date = datetime.datetime.strptime(child_birth_str, '%Y-%m-%d')
+                husb_date = datetime.datetime.strptime(husb_birth_str, '%Y-%m-%d')
+                wife_date = datetime.datetime.strptime(wife_birth_str, '%Y-%m-%d')
+                if (child_date - wife_date).years >= 60:
+                    log = child + "or" + wife + "has a wrong date: Mother should be less than 60 years older than her children."
+                    list_error.append(log)
+                if (child_date - husb_date).years >= 80:
+                    log = child + "or" + husb + "has a wrong date: father should be less than 80 years older than his children."
+                    list_error.append(log)
+    return list_error
+
+
+# US13: Siblings spacing
+# Birth dates of siblings should be more than 8 months apart or less than 2 days apart 
+# (twins may be born one day apart, e.g. 11:59 PM and 12:02 AM the following calendar day)
+# Hengyuan Zhang
+def siblings_spacing():
+    list_error = []
+    for family_id in family_dic:
+        family = family_dic[family_id]
+        # more than 1 child
+        if (len(family["FAM_CHILD"]) > 1):
+            list_birth = []
+            for child in family["FAM_CHILD"]:
+                for indivisual_id in individuals:
+                    indi = individuals[indivisual_id]
+                    if child == indi:
+                        bir_date_str = indi["BIRT"]
+                        bir_date = datetime.datetime.strptime(bir_date_str, '%Y-%m-%d')
+                    list_birth.append(bir_date)
+            list_birth.sort()
+            for i in range(1,len(list_birth) - 1):
+                if ((list_birth[i] - list_birth[i - 1]).months < 8 and (list_birth[i] - list_birth[i - 1]).days > 2):
+                    log = family + "has a wrong date: Birth dates of siblings should be more than 8 months apart or less than 2 days apart."
+                    list_error.append(log)
+    return list_error
 
 
 # US42: Reject illegitimate dates
