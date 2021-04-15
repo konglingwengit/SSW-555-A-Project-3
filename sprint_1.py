@@ -339,6 +339,7 @@ def mar_bef_death():
             list_error.append(log)
     return list_error
 
+
 # US06: Divorce before death
 # Divorce can only occur before death of both spouses
 # Muyang Li
@@ -374,9 +375,9 @@ def birth_before_marriage_of_parents():
             # print(chId)
             for children in ged_data["INDI"]:
                 # if children['INDI'] == "@" + chId + "@":
-                    # print(children["BIRT"])
-                    # print(fam["MARR"])
-                    # compare children's birth date and parents's marriage date
+                # print(children["BIRT"])
+                # print(fam["MARR"])
+                # compare children's birth date and parents's marriage date
                 if "Birthday" in ged_data["INDI"] and "Married" in ged_data["FAM"]:
                     bir_date = children["BIRT"]
                     mar_date = fam["MARR"]
@@ -438,7 +439,7 @@ def siblings_spacing():
                         bir_date = datetime.datetime.strptime(bir_date_str, '%Y-%m-%d')
                     list_birth.append(bir_date)
             list_birth.sort()
-            for i in range(1,len(list_birth) - 1):
+            for i in range(1, len(list_birth) - 1):
                 if ((list_birth[i] - list_birth[i - 1]).months < 8 and (list_birth[i] - list_birth[i - 1]).days > 2):
                     log = family + "has a wrong date: Birth dates of siblings should be more than 8 months apart or less than 2 days apart."
                     list_error.append(log)
@@ -479,38 +480,37 @@ def rejectIllegitimateDates():
             return list_error
 
 
-#
-# # US22: All individual IDs should be unique
-# # and all family IDs should be unique
-# # Yikan Wang Sprint2
-# def unique_ID():
-#     result = set()
-#     filter = set()
-#     print('hello')
-#     for fam in ged_data["FAM"]:
-#         if fam['FAM'] in filter:
-#             result.add(fam['FAM'])
-#         filter.add(fam['FAM'])
-#
-#     for indi in ged_data["INDI"]:
-#         if indi['INDI'] in filter:
-#             result.add(indi['INDI'])
-#         filter.add(indi['INDI'])
-#     anomaly_array.append(f"ANOMALY: repetitve IDs{result}")
-#
-#
-# # US 23 Yikan Sprint2
-# # No more than one individual with the
-# # same name and birth date should appear
-# # in a GEDCOM file
-# def unique_birthday():
-#     result = set()
-#     filter = set()
-#     for indi in ged_data["INDI"]:
-#         if (indi['INDI'], indi['BIRT']) in filter:
-#             result.add((indi['INDI'], indi['BIRT']))
-#         filter.add((indi['INDI'], indi['BIRT']))
-#     anomaly_array.append(f'repetitve name&birthdays{result}')
+# US22: All individual IDs should be unique
+# and all family IDs should be unique
+# Yikan Wang Sprint2
+def unique_ID():
+    result = set()
+    filter = set()
+    print('hello')
+    for fam in ged_data["FAM"]:
+        if fam['FAM'] in filter:
+            result.add(fam['FAM'])
+        filter.add(fam['FAM'])
+
+    for indi in ged_data["INDI"]:
+        if indi['INDI'] in filter:
+            result.add(indi['INDI'])
+        filter.add(indi['INDI'])
+    anomaly_array.append(f"ANOMALY: repetitve IDs{result}")
+
+
+# US 23 Yikan Sprint2
+# No more than one individual with the
+# same name and birth date should appear
+# in a GEDCOM file
+def unique_birthday():
+    result = set()
+    filter = set()
+    for indi in ged_data["INDI"]:
+        if (indi['INDI'], indi['BIRT']) in filter:
+            result.add((indi['INDI'], indi['BIRT']))
+        filter.add((indi['INDI'], indi['BIRT']))
+    anomaly_array.append(f'repetitve name&birthdays{result}')
 
 
 # USID: 15
@@ -521,7 +521,6 @@ def check_sibling_count():
         family = family_dic[family_id]
         if (len(family["FAM_CHILD"]) > 15):
             anomaly_array.append("ANOMALY: FAMILY: US16: {}: Family has {} siblings which is more than 15 siblings")
-
 
 
 # User_Story_30: List all living married people in a GEDCOM file
@@ -557,14 +556,14 @@ def siblingsnotmarry():
         if fam["FAM_CHILD"][0] != 'NA':
             # find children
             chId = fam["FAM_CHILD"][0]
-            #print(chId)
+            # print(chId)
         # if family["FAM_CHILD"] in family:
         #     child = res['CHILDREN']
         #     childd = list(x for x in indi if x["ID"] in child)
         #     # print childd
     for sibling in chId:
         sib_fam = next((x for x in family if x["HUSB"] == sibling["FAM_CHILD"]), None)
-        #print(sib_fam)
+        # print(sib_fam)
         if sib_fam and sib_fam["WIFE"] in chId:
             anomaly_array.append("ANOMALY: Sibling is married to another sibling")
 
@@ -582,7 +581,8 @@ def list_recent_births():
             birth_date = datetime.strptime(individuals["birthday"], "%Y-%m-%d %H:%M:%S")
             delta = datetime.date(datetime.now()) - datetime.date(birth_date)
             if (delta.days < 30 and delta.days >= 0):
-                print('\t' + individuals["ID"] + '\t\t\t%-10s' % individuals["NAME"][0] + " %-10s" % (individuals["NAME"][1]).strip(
+                print('\t' + individuals["ID"] + '\t\t\t%-10s' % individuals["NAME"][0] + " %-10s" % (
+                individuals["NAME"][1]).strip(
                     "/") + '\t\t' + individuals['birthday'] + '\t\t' + str(delta.days))
 
 
@@ -631,14 +631,68 @@ def is_marriage_before_divorce():
     return anomaly_array
 
 
+"""
+    Below are the sprint3 of Yikan Wang
+"""
+# US36: List recent Death
+# List all people in a GEDCOM file who died in the last 30 days
+# Yikan Wang
+def list_recent_deaths():
+    print("start")
+    print(ged_data["INDI"])
+    current_dic = {}
+    print("end")
+    print("User_Story_35:List all people in a GEDCOM file who were born in the last 30 days")
+    for people in ged_data["INDI"]:
+        if "DEAT" in people and people["DEAT"] is not 'NA':
+            death_date = datetime.strptime(people["DEAT"], "%Y - %m - %d")
+            delta = datetime.date(datetime.now()) - datetime.date(death_date)
+            if (delta.days < 30 and delta.days >= 0):
+                print(f'{people["NAME"]} died in the past 30 days')
+
+# US 37 Listrecentsurvivors
+# List all living spouses and descendants of people
+# in a GEDCOM file who died in the last 30days
+
+def list_recent_survivors():
+    died = set()
+    survivor = set()
+    print("User_Story_35:List all people in a GEDCOM file who were born in the last 30 days")
+    for people in ged_data["INDI"]:
+        if "DEAT" in people and people["DEAT"] is not 'NA':
+            death_date = datetime.strptime(people["DEAT"], "%Y - %m - %d")
+            delta = datetime.date(datetime.now()) - datetime.date(death_date)
+            if (delta.days < 30 and delta.days >= 0):
+                print(f'{people["NAME"]} died in the past 30 days')
+                died.add(people["INDI"])
+                print(died)
+
+    for fam in ged_data["FAM"]:
+        print(fam)
+        if fam["HUSB"] in died or fam["WIFE"] in died or fam["CHIL"] in died:
+            print(f'famlity{fam["FAM"]}')
+            survivor.add(fam['HUSB'])
+            survivor.add(fam['WIFE'])
+            survivor.add(fam['CHIL'])
+
+        survivor = survivor - died
+    print(f'survivors{survivor}')
 
 if __name__ == '__main__':
     # read file according to conditions
-    print(listLivingMarried())
+    """
+        To all members: plz delete all test codes like below 
+            before pushing to Git, otherwise the program will
+            print out undesired result when other members testing 
+            their codes. --Yikan Wang
+    
+    """
+
+    # print(listLivingMarried())
     ged_data = read_ged_data("test_data.ged")
 
-    print('ged_data')
-    print(ged_data)
+    # print('ged_data')
+    # print(ged_data)
     '''
         for family in ged_data["FAM"]:
             #print(f'family: {family}')
@@ -665,14 +719,9 @@ if __name__ == '__main__':
         fam_id = family["FAM"].strip('@')
         fam_table.add_row([fam_id, family["MARR"], family["DIV"], family["HUSB"].strip('@'), family["HUSB_NAME"],
                            family["WIFE"].strip('@'), family["WIFE_NAME"], ({",".join(family["FAM_CHILD"])})])
-    # unique_birthday()
-    # print tables
-    # print(indi_table)
-    # print(fam_table)
-    # print('test results')
-    # print(bir_bef_mar)
-    # output to file
 
+
+    list_recent_survivors()
 
     with open("output.txt", "w+") as f:
         f.write(str(indi_table))
