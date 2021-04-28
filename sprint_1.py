@@ -1,4 +1,4 @@
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 from typing import Dict, Any, List
 from prettytable import PrettyTable
 
@@ -548,6 +548,22 @@ def listLivingMarried():
     return ["US30: Living & Married People Table", allFields, tagNames, current_dic]
 
 
+# US31: List living single
+# List all living people over 30 who have never been married in a GEDCOM file
+# Hengyuan Zhang
+def list_nomarried_living():
+    result = list()
+    for indivisual_id in individuals:
+        indi = individuals[indivisual_id]
+        if "BIRT" in indi:
+            birthstr = indi["BIRT"]
+            current_date = datetime.datetime.now()
+            birthdate = datetime.datetime.strptime(birthstr, '%Y-%m-%d')
+            if (current_date - birthdate).years >= 30:
+                if "MARR" not in indi:
+                    result.insert(indi)
+    return result
+
 # US18: Siblings should not marry
 # Siblings should not marry one another
 # Muyang Li
@@ -683,7 +699,6 @@ def list_recent_deaths():
 # US 37 Listrecentsurvivors
 # List all living spouses and descendants of people
 # in a GEDCOM file who died in the last 30days
-
 def list_recent_survivors():
     died = set()
     survivor = set()
@@ -707,6 +722,23 @@ def list_recent_survivors():
 
         survivor = survivor - died
     print(f'survivors{survivor}')
+
+
+# US38: List upcoming birthdays
+# List all living people in a GEDCOM file whose birthdays occur in the next 30 days
+# Hengyuan Zhang
+def list_living_perple_30():
+    result = list()
+    dayNow = datetime.datetime.now()
+    dayAfter30 = dayNow + datetime.timedelta(days=30)
+    for indivisual_id in individuals:
+        indi = individuals[indivisual_id]
+        if "BIRT" in indi:
+            birthstr = indi["BIRT"]
+        birthdate = datetime.datetime.strptime(birthstr, '%Y-%m-%d')
+        if birthdate >= dayNow and birthdate <= dayAfter30:
+            result.insert(indi)
+    return result
 
 
 # US41: Include partial dates
