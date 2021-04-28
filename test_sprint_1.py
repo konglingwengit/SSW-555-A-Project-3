@@ -95,6 +95,24 @@ class TestSprint1(unittest.TestCase):
     def test_is_marriage_before_divorce(self):
         self.assertEqual(len(is_marriage_before_divorce()), 0)
 
+    # US42
+    def test_valid_dates_fail(self):
+        family_dic = {'@F1@': {'FAM': '@F1@',
+                               'FAM_LINE': 461,
+                               'HUSB_NAME': 'Samuel /Venzon/',
+                               'HUSB_LINE': 462,
+                               'HUSB': '@I6@',
+                               'WIFE_NAME': 'Willodean /Malagon/',
+                               'WIFE_LINE': 463,
+                               'WIFE': '@I1@',
+                               'MARR_LINE': 466,
+                               'MARR': '1970-2-30',
+                               'DIV': 'NA'}}
+        error_array =[]
+        sprint_1.error_array = error_array
+        sprint_1.family_dic = family_dic
+        sprint_1.validate_date()
+        self.assertIsInstance(error_array,type(sprint_1.validate_date()))
 
 
 if __name__ == '__main__':

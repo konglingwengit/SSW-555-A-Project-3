@@ -13,6 +13,7 @@ family_dic = {}
 anomaly_array = []
 ged_data = {}
 individuals: Dict[Any, Any] = {}
+error_array = []
 
 
 def create_individuals_map():
@@ -572,10 +573,11 @@ def siblingsnotmarry():
 # List all orphaned children (both parents dead and child < 18 years old) in a GEDCOM file
 # Muyang Li
 def getPeopleById(PersonId):
-    results_for_people=ged_data("INDI")
+    results_for_people = ged_data("INDI")
     for people in results_for_people:
         if people['ID'] == PersonId:
             return people
+
 
 def listOrphans():
     """ US33- List of Orphan Children') """
@@ -607,7 +609,7 @@ def list_recent_births():
             delta = datetime.date(datetime.now()) - datetime.date(birth_date)
             if (delta.days < 30 and delta.days >= 0):
                 print('\t' + individuals["ID"] + '\t\t\t%-10s' % individuals["NAME"][0] + " %-10s" % (
-                individuals["NAME"][1]).strip(
+                    individuals["NAME"][1]).strip(
                     "/") + '\t\t' + individuals['birthday'] + '\t\t' + str(delta.days))
 
 
@@ -659,6 +661,8 @@ def is_marriage_before_divorce():
 """
     Below are the sprint3 of Yikan Wang
 """
+
+
 # US36: List recent Death
 # List all people in a GEDCOM file who died in the last 30 days
 # Yikan Wang
@@ -669,11 +673,12 @@ def list_recent_deaths():
     print("end")
     print("User_Story_35:List all people in a GEDCOM file who were born in the last 30 days")
     for people in ged_data["INDI"]:
-        if "DEAT" in people and people["DEAT"] is not 'NA':
+        if "DEAT" in people and people["DEAT"] != 'NA':
             death_date = datetime.strptime(people["DEAT"], "%Y - %m - %d")
             delta = datetime.date(datetime.now()) - datetime.date(death_date)
             if (delta.days < 30 and delta.days >= 0):
                 print(f'{people["NAME"]} died in the past 30 days')
+
 
 # US 37 Listrecentsurvivors
 # List all living spouses and descendants of people
@@ -684,7 +689,7 @@ def list_recent_survivors():
     survivor = set()
     print("User_Story_35:List all people in a GEDCOM file who were born in the last 30 days")
     for people in ged_data["INDI"]:
-        if "DEAT" in people and people["DEAT"] is not 'NA':
+        if "DEAT" in people and people["DEAT"] != 'NA':
             death_date = datetime.strptime(people["DEAT"], "%Y - %m - %d")
             delta = datetime.date(datetime.now()) - datetime.date(death_date)
             if (delta.days < 30 and delta.days >= 0):
@@ -709,7 +714,7 @@ def list_recent_survivors():
 # Muyang Li
 def accpet_partial_dates():
     """ US41-Include Partial Dates """
-    return_flag=False
+    return_flag = False
     results_for_family = ged_data("FAM")
     results_for_people = ged_data("INDI")
 
@@ -717,25 +722,71 @@ def accpet_partial_dates():
         if "BIRT" in res and res["BIRT"] == None:
             # print(str(res["ID"])+ " Has Partial Date in GEDCOM File..")
             message = "Error!!! ..." + str(res["ID"]) + " Has Partial Birthdate in GEDCOM File."
-            print('\t'+message)
+            print('\t' + message)
 
     for res in results_for_people:
         if "DEAT" in res and res["DEAT"] == None:
-           message = "Error!!! ..." + str(res["ID"]) + " Has Partial Deathdate in GEDCOM File."
-           print('\t' + message)
+            message = "Error!!! ..." + str(res["ID"]) + " Has Partial Deathdate in GEDCOM File."
+            print('\t' + message)
 
     for res in results_for_family:
         if "MARR" in res and res["MARR"] == None:
             message = "Error!!! ..." + str(res["FAMID"]) + " Has Partial Marriage Date in GEDCOM File."
-            print('\t'+message)
+            print('\t' + message)
 
     for res in results_for_family:
         if "DIV" in res and res["DIV"] == None:
             message = "Error!!! ..." + str(res["ID"]) + " Has Partial Divorce Date in GEDCOM File."
-            print('\t'+message)
+            print('\t' + message)
+
+
+# US42
+# Lingwen Kong
+# validate dates
+def validate_date():
+    for value in individuals.values():
+        if "NA" != value["BIRT"]:
+            birth = value["BIRT"]
+            try:
+                datetime.strptime(birth, '%Y-%m-%d')
+            except ValueError:
+                error_array.append(
+                    "ERROR: INDIVIDUAL: US42: {}: Individual {} does not have valid Birth Date {}".format(
+                        value["BIRT_LINE"], value["INDI"], value["BIRT"]))
+
+        if value["DEAT"] != "NA":
+            death = value["DEAT"]
+            try:
+                datetime.strptime(death, '%Y-%m-%d')
+            except ValueError:
+                error_array.append(
+                    "ERROR: INDIVIDUAL: US42: {}: Individual {} does not have valid Death Date {}".format(
+                        value["DEAT_LINE"], value["INDI"], value["DEAT"]))
+
+    for value in family_dic.values():
+        if value["MARR"] != "NA":
+            marr = value["MARR"]
+            try:
+                datetime.strptime(marr, '%Y-%m-%d')
+            except ValueError:
+                error_array.append(
+                    "ERROR: FAMILY: US42: {}: Famliy {} does not have valid Marriage Date {}".format(value["MARR_LINE"],
+                                                                                                     value["FAM"],
+                                                                                                     value["MARR"]))
+        if value["DIV"] != "NA":
+            div = value["DIV"]
+            try:
+                datetime.strptime(div, '%Y-%m-%d')
+            except ValueError:
+                error_array.append(
+                    "ERROR: FAMILY: US42: {}: Famliy {} does not have valid Divorce Date {}".format(value["DIV_LINE"],
+                                                                                                    value["FAM"],
+                                                                                                    value["DIV"]))
+    return error_array
 
 
 if __name__ == '__main__':
+
     # read file according to conditions
     """
         To all members: plz delete all test codes like below 
@@ -777,13 +828,14 @@ if __name__ == '__main__':
         fam_table.add_row([fam_id, family["MARR"], family["DIV"], family["HUSB"].strip('@'), family["HUSB_NAME"],
                            family["WIFE"].strip('@'), family["WIFE_NAME"], ({",".join(family["FAM_CHILD"])})])
 
-
     list_recent_survivors()
 
     with open("output.txt", "w+") as f:
         f.write(str(indi_table))
         f.write(str(fam_table))
-
+    print("NEWWWWWWW")
+    print(validate_date())
+    exit()
     # Below are for tests
     #
     # print(format_date([17, FEB, 2021]))
