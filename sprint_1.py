@@ -568,6 +568,31 @@ def siblingsnotmarry():
             anomaly_array.append("ANOMALY: Sibling is married to another sibling")
 
 
+# US33: List orphans
+# List all orphaned children (both parents dead and child < 18 years old) in a GEDCOM file
+# Muyang Li
+def getPeopleById(PersonId):
+    results_for_people=ged_data("INDI")
+    for people in results_for_people:
+        if people['ID'] == PersonId:
+            return people
+
+def listOrphans():
+    """ US33- List of Orphan Children') """
+    print('\t' + 'FAMILY ID' + '\t' + 'INDIVIDUAL ID' + '\t\t' + 'NAME')
+    results_for_family = ged_data("FAM")
+    for family in results_for_family:
+        if 'CHIL' not in family:
+            continue
+        husband = getPeopleById(family['HUSB'])
+        wife = getPeopleById(family['WIFE'])
+        if 'DEAT' in husband and 'DEAT  ' in wife:
+            for child in family['CHIL']:
+                child_name = getPeopleById(child)
+                print('\t' + family['FAMID'] + '\t\t' + child + '\t\t\t'
+                      + child_name["NAME"][0] + " " + (child_name["NAME"][1]).strip("/"))
+
+
 # US35: List recent births
 # List all people in a GEDCOM file who were born in the last 30 days
 # Muyang Li
@@ -677,6 +702,38 @@ def list_recent_survivors():
 
         survivor = survivor - died
     print(f'survivors{survivor}')
+
+
+# US41: Include partial dates
+# Accept and use dates without days or without days and months
+# Muyang Li
+def accpet_partial_dates():
+    """ US41-Include Partial Dates """
+    return_flag=False
+    results_for_family = ged_data("FAM")
+    results_for_people = ged_data("INDI")
+
+    for res in results_for_people:
+        if "BIRT" in res and res["BIRT"] == None:
+            # print(str(res["ID"])+ " Has Partial Date in GEDCOM File..")
+            message = "Error!!! ..." + str(res["ID"]) + " Has Partial Birthdate in GEDCOM File."
+            print('\t'+message)
+
+    for res in results_for_people:
+        if "DEAT" in res and res["DEAT"] == None:
+           message = "Error!!! ..." + str(res["ID"]) + " Has Partial Deathdate in GEDCOM File."
+           print('\t' + message)
+
+    for res in results_for_family:
+        if "MARR" in res and res["MARR"] == None:
+            message = "Error!!! ..." + str(res["FAMID"]) + " Has Partial Marriage Date in GEDCOM File."
+            print('\t'+message)
+
+    for res in results_for_family:
+        if "DIV" in res and res["DIV"] == None:
+            message = "Error!!! ..." + str(res["ID"]) + " Has Partial Divorce Date in GEDCOM File."
+            print('\t'+message)
+
 
 if __name__ == '__main__':
     # read file according to conditions

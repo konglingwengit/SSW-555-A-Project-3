@@ -60,6 +60,14 @@ class TestSprint1(unittest.TestCase):
         list_log = []
         self.assertListEqual(siblings_spacing(), list_log)
 
+    def test_listOrphans(self):
+        list_log = []
+        self.assertListEqual(listOrphans(), list_log)
+
+    def test_accpet_partial_dates(self):
+        list_log = []
+        self.assertListEqual(accpet_partial_dates(), list_log)
+
     #
     # def test_unique_birthday(self):
     #     list_log = []

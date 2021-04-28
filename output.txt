@@ -3,7 +3,7 @@
 +----+------------------+--------+----------------+-----+-------+---------------+-------+--------+
 | I1 | Nicholas /Mike/  |   M    | 1978 - 8 - 18  |  43 |  True |       NA      |   F1  |   NA   |
 | I2 |   Jason /Mike/   |   M    | 1950 - 11 - 11 |  71 |  True |       NA      |   NA  | F1,F3  |
-| I3 |   Nancy /Leo/    |   F    | 1950 - 11 - 11 |  35 | False | 1985 - 9 - 24 |   NA  |   F1   |
+| I3 |   Nancy /Leo/    |   F    | 1950 - 11 - 11 |  71 | False | 2021 - 3 - 24 |   NA  |   F1   |
 | I4 |   Ilia /Mike/    |   M    | 1990 - 6 - 30  |  31 |  True |       NA      |   F3  | F2,F4  |
 | I5 |  Claire /John/   |   F    | 1960 - 10 - 16 |  61 |  True |       NA      |   NA  |   F3   |
 | I6 |   Jerry /Mike/   |   M    | 2018 - 7 - 23  |  3  |  True |       NA      |   F2  |   NA   |
