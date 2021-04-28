@@ -114,7 +114,11 @@ class TestSprint1(unittest.TestCase):
         sprint_1.validate_date()
         self.assertIsInstance(error_array,type(sprint_1.validate_date()))
 
-
+    # US39
+    # lingwen Kong
+    def test_list_upcoming_anni_pass(self):
+        """ Test case for US39 (pass) """
+        self.assertTrue(sprint_1.list_upcoming_anni(),True)
 if __name__ == '__main__':
     """ Run test cases on startup """
     unittest.main(exit=False, verbosity=2)

@@ -785,6 +785,39 @@ def validate_date():
     return error_array
 
 
+
+# US39
+# lingwen Kong
+def list_upcoming_anni():
+    """ US39: List all living couples in a GEDCOM file whose marriage anniversaries occur in the next 30 days """
+
+    today_month = int(datetime.today().strftime("%m"))
+    today_date = int(datetime.today().strftime("%d"))
+    current_dic = {}
+    marr_count = 0
+    result = True
+
+    for value in family_dic.values():
+        if (value["MARR"] == 'NA'):
+            error_array.append(
+                f'ERROR: FAMILY: US39: {value["FAM_LINE"]}: Family {value["FAM"]} does not have married date!')
+            result = False
+        else:
+            current_marr = value["MARR"]
+            current_month = int(current_marr.split("-")[1])
+            current_date = int(current_marr.split("-")[2])
+            day_difference = (current_month - today_month) * 30 + (current_date - today_date)
+
+            if (day_difference > 0 and day_difference <= 30):
+                current_dic[value["FAM"]] = value
+                marr_count += 1
+
+    if marr_count > 0:
+        allFields = ["ID", "Married", "Husband ID", "Husband Name", "Wife ID", "Wife Name"]
+        tagNames = ["FAM", "MARR", "HUSB", "HUSB_NAME", "WIFE", "WIFE_NAME"]
+        print_table("US39: List Upcoming Anniversaries Table", allFields, tagNames, current_dic)
+    return result
+
 if __name__ == '__main__':
 
     # read file according to conditions
@@ -833,9 +866,4 @@ if __name__ == '__main__':
     with open("output.txt", "w+") as f:
         f.write(str(indi_table))
         f.write(str(fam_table))
-    print("NEWWWWWWW")
-    print(validate_date())
-    exit()
-    # Below are for tests
-    #
-    # print(format_date([17, FEB, 2021]))
+
