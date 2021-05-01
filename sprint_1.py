@@ -918,7 +918,7 @@ def validate_date():
 
 
 # US39
-# lingwen Kong
+# Haoyu Li
 def list_upcoming_anni():
     """ US39: List all living couples in a GEDCOM file whose marriage anniversaries occur in the next 30 days """
 
@@ -968,7 +968,7 @@ def determine_days(date1, date2):
 
 
 # US09
-# lingwen Kong
+# Haoyu Li
 def birth_before_death_parents():
     """ US09: Birth before death of parents """
     global error_array
@@ -1002,7 +1002,7 @@ def is_spouse_a_child(individual_id, spouse_id):
 
 
 # US17
-# lingwen kong
+# Haoyu Li
 def check_parent_child_marriage():
     for family_id in family_dic:
         family_temp = family_dic[family_id]
@@ -1017,7 +1017,7 @@ def check_parent_child_marriage():
 
 
 # US21
-# lingwen kong
+# Haoyu Li
 def correct_gender():
     create_family_dic()
     error_array = []
@@ -1036,7 +1036,7 @@ def correct_gender():
 
 
 # US26
-# lingwen Kong
+# Haoyu Li
 def check_corresponding_entries():
     for family_id in family_dic:
         family = family_dic[family_id]
@@ -1061,7 +1061,7 @@ def check_corresponding_entries():
 
 
 # US27
-
+# Haoyu Li
 def calculateAge(birthDate):
     today = date.today()
     age = today.year - birthDate.year - ((today.month, today.day) < (birthDate.month, birthDate.day))
@@ -1088,7 +1088,7 @@ def include_individual_ages():
 
 
 # US28 List siblings in families by decreasing age, i.e. oldest siblings first
-# lingwen kong
+# Haoyu Li
 def listSiblingsByAge():
     create_family_dic()
     error_count = 0
@@ -1129,6 +1129,7 @@ def listSiblingsByAge():
 
 
 # US 32: List multiple births
+# Haoyu Li
 def multiple_birth_same():
     create_family_dic()
     global anomaly_array

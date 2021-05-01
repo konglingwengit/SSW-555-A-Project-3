@@ -65,9 +65,7 @@ class TestSprint1(unittest.TestCase):
     def test_unique_ID(self):
         self.assertEqual(sprint_1.unique_ID(), None)
 
-    # User_Story_30: List all living married people in a GEDCOM file
-    # Success test
-    # @mock.patch("sprint4.printTable")
+
     def test_list_living_married_individuals_success(self):
         self.assertListEqual(sprint_1.listLivingMarried(), ['US30: Living & Married People Table',
                                                             ['ID', 'Name', 'Gender', 'Birthday', 'Age', 'Alive',
@@ -116,14 +114,13 @@ class TestSprint1(unittest.TestCase):
     def test_is_marriage_before_divorce(self):
         self.assertEqual(len(sprint_1.is_marriage_before_divorce()), 0)
 
-    # US42
+
     def test_valid_dates_fail(self):
         error_array = []
         sprint_1.validate_date()
         self.assertIsInstance(error_array, type(sprint_1.validate_date()))
 
-    # US39
-    # lingwen Kong
+
     def test_list_upcoming_anni_pass(self):
         """ Test case for US39 (pass) """
         self.assertTrue(sprint_1.list_upcoming_anni(), True)
@@ -160,7 +157,7 @@ class TestSprint1(unittest.TestCase):
 
 
 
-    # US27
+
     def test_include_age(self):
         test_dict = {'@I1@': {'INDI': '@I1@', 'NAME': 'Nicholas /Mike/', 'SEX': 'M', 'BIRT': '1978 - 8 - 18',
                               'INDI_CHILD': ['F1'], 'SPOUSE': ['NA'], 'DEAT': 'NA', 'AGE': 42, 'ALIVE': True},
