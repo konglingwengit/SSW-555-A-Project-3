@@ -1,4 +1,4 @@
-from datetime import datetime, time, timedelta
+from datetime import datetime, time, timedelta, date
 from typing import Dict, Any, List
 from prettytable import PrettyTable
 
@@ -20,10 +20,34 @@ def create_individuals_map():
     global individuals
     individuals = {}
 
-    for individual in document["INDI"]:
+    for individual in ged_data["INDI"]:
         individuals[individual["INDI"]] = individual
 
 
+def create_family_dic():
+    global family_dic
+    family_dic = {}
+
+    for family in ged_data["FAM"]:
+        if family["HUSB"] != "NA" and family["HUSB"] in individuals:
+            family["husband_object"] = individuals[family["HUSB"]]
+
+        if family["WIFE"] != "NA" and family["WIFE"] in individuals:
+            family["wife_object"] = individuals[family["WIFE"]]
+
+        if family["FAM_CHILD"] != "NA":
+            children = []
+            for child in family["FAM_CHILD"]:
+                try:
+                    children.append(individuals[child])
+                except:
+                    pass
+            family["children_objects"] = children
+
+        family_dic[family["FAM"]] = family
+
+
+# create_family_dic()
 def get_month_num(shortMonth):
     """:returns general number of given month"""
     return {
@@ -130,7 +154,7 @@ def read_ged_data(file):
                         spouse = dic["SPOUSE"] if "SPOUSE" in dic else []
                         if current_arr[1] == 'FAMC':
                             child.append(f"{current_arr[2].strip('@')}")
-                        else:
+                        if current_arr[1] == 'FAMS':
                             spouse.append(f"{current_arr[2].strip('@')}")
                         dic['INDI_CHILD'] = child
                         dic['SPOUSE'] = spouse
@@ -174,6 +198,10 @@ def read_ged_data(file):
                     doc[current_tag].append(dic)
 
         return doc
+
+
+ged_data = read_ged_data("test_data.ged")
+create_individuals_map()
 
 
 # US29: List all deceased individuals in a GEDCOM file
@@ -232,47 +260,61 @@ def is_age_legal():
 # Hengyuan Zhang
 def date_bef_now():
     """ store date in individuals and return error list"""
-    list_error = []
-    for indivisual_id in individuals:
-        indi = individuals[indivisual_id]
-        if "BIRT" in indi:
-            datestr = indi["BIRT"]
-        elif "DEAT" in indi:
-            datestr = indi["DEAT"]
-        elif "DIV" in indi:
-            datestr = indi["DIV"]
-        elif "MARR" in indi:
-            datestr = indi["MARR"]
-        else:
-            continue
-        current_date = datetime.datetime.now()
-        date = datetime.datetime.strptime(datestr, '%Y-%m-%d')
-        if (current_date - date).days < 0:
-            log = indi + "has a inavilable date:" + datestr
-            list_error.append(log)
-    return list_error
+    for family in family_dic.values():
+        if family["MARR"] != "NA":
+            if (determine_age(family["MARR"], None) < 0):
+                anomaly_array.append(
+                    "ERROR: FAMILY: US01: {}: Family has marrige date {} later than today".format(family["FAM"],
+                                                                                                  family["MARR"]))
+        if family["DIV"] != "NA":
+            if (determine_age(family["DIV"], None) < 0):
+                anomaly_array.append(
+                    "ERROR: FAMILY: US01: {}: Family has divorce date {} later than today".format(family["FAM"],
+                                                                                                  family["DIV"]))
+
+    for indi in individuals.values():
+        # for birthday simply check age
+        if (determine_age(indi["BIRT"], None) < 0):
+            anomaly_array.append(
+                "ERROR: INDIVIDUAL: US01: {}: Individual has birth date {} later than today".format(indi["INDI"],
+                                                                                                    indi["BIRT"]))
+        if indi["DEAT"] != "NA":
+            if (determine_age(indi["DEAT"], None) < 0):
+                anomaly_array.append(
+                    "ERROR: INDIVIDUAL: US01: {}: Individual has death date {} later than today".format(indi["INDI"],
+                                                                                                        indi["DEAT"]))
+
+
+def is_date_after(date_one, date_two):
+    return date_one < date_two
 
 
 # US02: Birth before marriage
 # Birth should occur before marriage of an individual
 # Hengyuan Zhang
 def bir_bef_mar():
-    """ store birth and marriage date in individuals and return error list"""
-    list_error = []
-    for indivisual_id in individuals:
-        indi = individuals[indivisual_id]
-        if "BIRT" in indi and "MARR" in indi:
-            bir_date_str = indi["BIRT"]
-            mar_date_str = indi["MARR"]
-            bir_date = datetime.datetime.strptime(bir_date_str, '%Y-%m-%d')
-            mar_date = datetime.datetime.strptime(mar_date_str, '%Y-%m-%d')
-            if (bir_date - mar_date).days >= 0:
-                log = indi + "has a inavilable date: Birth date is after marriage date."
-                list_error.append(log)
-        else:
-            log = indi + "doesn't have marriage date."
-            list_error.append(log)
-    return list_error
+    for family_id in family_dic:
+        family = family_dic[family_id]
+        if "MARR" in family:
+            marriage_date = family["MARR"]
+            husband_birth_date = None
+            wife_birth_date = None
+            if "husband_object" in family and "BIRT" in family["husband_object"]:
+                husband_birth_date = family["husband_object"]["BIRT"]
+            else:
+                continue
+            if "wife_object" in family and "BIRT" in family["wife_object"]:
+                wife_birth_date = family["wife_object"]["BIRT"]
+            else:
+                continue
+            if is_date_after(marriage_date, husband_birth_date):
+                anomaly_array.append(
+                    ("ERROR: INDIVIDUAL: US02: {}: Person has marriage date {} before birth date {}").format(
+                        family["husband_object"]["INDI"], marriage_date, husband_birth_date))
+            if is_date_after(marriage_date, wife_birth_date):
+                anomaly_array.append(
+                    ("ERROR: INDIVIDUAL: US02: {}: Person has marriage date {} before birth date {}").format(
+                        family["wife_object"]["INDI"], marriage_date, wife_birth_date))
 
 
 # USO3: Birth before death
@@ -280,21 +322,15 @@ def bir_bef_mar():
 # Muyang Li
 def birth_before_death():
     """ store birth date and death in individuals and return error list"""
-    list_error = []
-    for indivisual_id in individuals:
-        indi = individuals[indivisual_id]
-        if "BIRT" in indi and "DEAT" in indi:
-            bir_date = indi["BIRT"]
-            death_date = indi["DEAT"]
-            bir_date = datetime.datetime.strptime(bir_date, '%Y-%m-%d')
-            death_date = datetime.datetime.strptime(death_date, '%Y-%m-%d')
-            if (bir_date - death_date).days >= 0:
-                log = indi + "has a wrong date: death date is before birth date."
-                list_error.append(log)
-        else:
-            log = indi + "doesn't have dead."
-            list_error.append(log)
-    return list_error
+    for currentIndividual in individuals.values():
+        if (currentIndividual['BIRT'] == 'NA'):
+            error_array.append(
+                "ERROR: INDIVIDUAL: US03: {}: Individual has no Birth Date".format(currentIndividual["INDI"]))
+        elif (currentIndividual['DEAT'] != 'NA'):
+            if (currentIndividual['BIRT'] > currentIndividual['DEAT']):
+                error_array.append(
+                    "ERROR: INDIVIDUAL: US03: {}: Individual has Birth date {} after Death Date {}".format(
+                        currentIndividual["INDI"], currentIndividual["BIRT"], currentIndividual["DEAT"]))
 
 
 # US04: Marriage before divorce
@@ -346,21 +382,40 @@ def mar_bef_death():
 # Muyang Li
 def divorce_before_death():
     """ store divorce date and death in individuals and return error list"""
-    list_error = []
-    for indivisual_id in individuals:
-        indi = individuals[indivisual_id]
-        if "DIV" in indi and "DEAT" in indi:
-            div_date = indi["DIV"]
-            death_date = indi["DEAT"]
-            div_date = datetime.datetime.strptime(div_date, '%Y-%m-%d')
-            death_date = datetime.datetime.strptime(death_date, '%Y-%m-%d')
-            if (div_date - death_date).days >= 0:
-                log = indi + "has a wrong date: divorce date is after death date."
-                list_error.append(log)
-        else:
-            log = indi + "doesn't have dead."
-            list_error.append(log)
-    return list_error
+    for family in family_dic.values():
+        husband_flag = False
+        wife_flag = False
+        if "DIV" in family and family["DIV"] != "NA":
+            divorce_date = family["DIV"]
+            if "husband_object" in family and family["husband_object"] != 'NA':
+                husband = family["husband_object"]
+                if "DEAT" in husband and husband["DEAT"] != 'NA':
+                    husband_flag = True
+                    husband_death = husband["DEAT"]
+            if "wife_object" in family and family["wife_object"] != 'NA':
+                wife = family["wife_object"]
+                if "DEAT" in wife and wife["DEAT"] != 'NA':
+                    wife_flag = True
+                    wife_death = wife["DEAT"]
+            if husband_flag and wife_flag:
+                husband_invalid = False
+                wife_invalid = False
+                if determine_days(husband_death, divorce_date) > 0:
+                    husband_invalid = True
+                if determine_days(wife_death, divorce_date) > 0:
+                    wife_invalid = True
+                if husband_invalid and wife_invalid:
+                    error_array.append(
+                        "ERROR: FAMILY: US06: {}: {}: Divorce {} happened after the death of both spouses - Husband: {} Wife: {}.".format(
+                            family["DIV_LINE"], family["FAM"], family["DIV"], husband_death, wife_death))
+                elif husband_invalid:
+                    error_array.append(
+                        "ERROR: FAMILY: US06: {}: {}: Divorce {} happened after the death of husband {}.".format(
+                            family["DIV_LINE"], family["FAM"], family["DIV"], husband_death, wife_death))
+                elif wife_invalid:
+                    error_array.append(
+                        "ERROR: FAMILY: US06: {}: {}: Divorce {} happened after the death of wife {}.".format(
+                            family["DIV_LINE"], family["FAM"], family["DIV"], husband_death, wife_death))
 
 
 # US08: Birth before marriage of parents
@@ -395,30 +450,31 @@ def birth_before_marriage_of_parents():
 # and father should be less than 80 years older than his children
 # Hengyuan Zhang
 def parents_not_old():
-    list_error = []
-    for fam in ged_data["FAM"]:
-        if fam["CHIL"] != 'NA':
-            child = fam["CHIL"]
-            husb = fam["HUSB"]
-            wife = fam["WIFE"]
-            for indivisual_id in individuals:
-                indi = individuals[indivisual_id]
-                if indi['NAME'] == child:
-                    child_birth_str = indi['BRITH']
-                if indi['NAME'] == husb:
-                    husb_birth_str = indi['BRITH']
-                if indi['NAME'] == wife:
-                    wife_birth_str = indi['BRITH']
-                child_date = datetime.datetime.strptime(child_birth_str, '%Y-%m-%d')
-                husb_date = datetime.datetime.strptime(husb_birth_str, '%Y-%m-%d')
-                wife_date = datetime.datetime.strptime(wife_birth_str, '%Y-%m-%d')
-                if (child_date - wife_date).years >= 60:
-                    log = child + "or" + wife + "has a wrong date: Mother should be less than 60 years older than her children."
-                    list_error.append(log)
-                if (child_date - husb_date).years >= 80:
-                    log = child + "or" + husb + "has a wrong date: father should be less than 80 years older than his children."
-                    list_error.append(log)
-    return list_error
+    for family in family_dic.values():
+        husband_flag = False
+        wife_flag = False
+
+        if "husband_object" in family and family["husband_object"] != 'NA':
+            husband_age = family["husband_object"]["AGE"]
+            husband_flag = True
+
+        if "wife_object" in family and family["wife_object"] != 'NA':
+            wife_age = family["wife_object"]["AGE"]
+            wife_flag = True
+
+        if "children_objects" in family and family["children_objects"] != 'NA':
+            for child in family["children_objects"]:
+                child_age = child["AGE"]
+                husband_to_child = int(husband_age) - int(child_age)
+                wife_to_child = int(wife_age) - int(child_age)
+
+                if husband_flag and husband_to_child >= 80:
+                    error_array.append(
+                        f'ERROR: INDIVIDUAL: US12: {family["husband_object"]["INDI_LINE"]}: {family["FAM"]}: Father is {husband_to_child} older than the child {child["INDI"]}.')
+
+                if wife_flag and wife_to_child >= 60:
+                    error_array.append(
+                        f'ERROR: FAMILY: US12: {family["wife_object"]["AGE"]}: {family["FAM"]}: Wife is {wife_to_child} older than the child {child["INDI"]}.')
 
 
 # US13: Siblings spacing
@@ -427,10 +483,11 @@ def parents_not_old():
 # Hengyuan Zhang
 def siblings_spacing():
     list_error = []
+    create_family_dic()
     for family_id in family_dic:
         family = family_dic[family_id]
         # more than 1 child
-        if (len(family["FAM_CHILD"]) > 1):
+        if len(family["FAM_CHILD"]) > 1:
             list_birth = []
             for child in family["FAM_CHILD"]:
                 for indivisual_id in individuals:
@@ -487,7 +544,6 @@ def rejectIllegitimateDates():
 def unique_ID():
     result = set()
     filter = set()
-    print('hello')
     for fam in ged_data["FAM"]:
         if fam['FAM'] in filter:
             result.add(fam['FAM'])
@@ -529,7 +585,6 @@ def check_sibling_count():
 # lingwen Kong
 def listLivingMarried():
     global individuals
-    print(individuals)
     current_dic = {}
     print("User_Story_30: List all living married people in a GEDCOM file")
     for value in individuals.values():
@@ -564,41 +619,83 @@ def list_nomarried_living():
                     result.insert(indi)
     return result
 
+
+def get_all_children(individual_object):
+    spouses = individual_object["SPOUSE"]
+    children = []
+    if spouses != 'NA':
+        for spouse_family_id in spouses:
+            individual_family = family_dic["@" + spouse_family_id + "@"]
+            if (len(individual_family["FAM_CHILD"]) > 0) and individual_family["FAM_CHILD"] != "NA":
+                children.extend(individual_family["FAM_CHILD"])
+
+    return children
+
+
+def get_individual_siblings(_id, include_husb, include_wife):
+    individual = individuals[_id]
+    siblings = []
+
+    if "INDI_CHILD" in individual and individual["INDI_CHILD"] != "NA":
+        for family_id in individual["INDI_CHILD"]:
+            if family_id == "NA":
+                continue
+            family = family_dic["@" + family_id + "@"]
+            if "FAM_CHILD" in family and family["FAM_CHILD"] != "NA":
+                siblings.extend(family["FAM_CHILD"])
+
+            if include_husb:
+                if "husband_object" in family and family["husband_object"] != "NA":
+                    siblings.extend(get_all_children(family["husband_object"]))
+
+            if include_wife:
+                if "wife_object" in family and family["wife_object"] != "NA":
+                    siblings.extend(get_all_children(family["wife_object"]))
+
+    siblings = list(set(siblings))
+
+    return siblings
+
+
 # US18: Siblings should not marry
 # Siblings should not marry one another
 # Muyang Li
 def siblingsnotmarry():
     """ Siblings should not marry one another """
-    for fam in ged_data["FAM"]:
-        if fam["FAM_CHILD"][0] != 'NA':
-            # find children
-            chId = fam["FAM_CHILD"][0]
-            # print(chId)
-        # if family["FAM_CHILD"] in family:
-        #     child = res['CHILDREN']
-        #     childd = list(x for x in indi if x["ID"] in child)
-        #     # print childd
-    for sibling in chId:
-        sib_fam = next((x for x in family if x["HUSB"] == sibling["FAM_CHILD"]), None)
-        # print(sib_fam)
-        if sib_fam and sib_fam["WIFE"] in chId:
-            anomaly_array.append("ANOMALY: Sibling is married to another sibling")
+    for individual_id in individuals:
+        individual = individuals[individual_id]
+        if "SPOUSE" in individual and individual["SPOUSE"] != "NA":
+            siblings = get_individual_siblings(individual_id, True, True)
+            for spouse_family_id in individual["SPOUSE"]:
+                if spouse_family_id == "NA":
+                    break
+                spouse_family = family_dic["@" + spouse_family_id + "@"]
+                spouse_id = None
+                if "WIFE" in spouse_family and spouse_family["WIFE"] != "NA":
+                    if spouse_family["WIFE"] != individual_id:
+                        spouse_id = spouse_family["WIFE"]
+                if "HUSB" in spouse_family and spouse_family["HUSB"] != "NA":
+                    if spouse_family["HUSB"] != individual_id:
+                        spouse_id = spouse_family["HUSB"]
+                if spouse_id is not None and spouse_id in siblings:
+                    anomaly_array.append("ANOMALY: INDIVIDUAL: US18: {}: {}: Individual married to sibling {}".format(
+                        individual["INDI_LINE"], individual_id, spouse_id))
 
 
 # US33: List orphans
 # List all orphaned children (both parents dead and child < 18 years old) in a GEDCOM file
 # Muyang Li
 def getPeopleById(PersonId):
-    results_for_people = ged_data("INDI")
-    for people in results_for_people:
-        if people['ID'] == PersonId:
-            return people
+    results_for_people = ged_data["INDI"]
+    for person in results_for_people:
+        if person['INDI'] == PersonId:
+            return person
 
 
 def listOrphans():
     """ US33- List of Orphan Children') """
     print('\t' + 'FAMILY ID' + '\t' + 'INDIVIDUAL ID' + '\t\t' + 'NAME')
-    results_for_family = ged_data("FAM")
+    results_for_family = ged_data["FAM"]
     for family in results_for_family:
         if 'CHIL' not in family:
             continue
@@ -747,8 +844,8 @@ def list_living_perple_30():
 def accpet_partial_dates():
     """ US41-Include Partial Dates """
     return_flag = False
-    results_for_family = ged_data("FAM")
-    results_for_people = ged_data("INDI")
+    results_for_family = ged_data["FAM"]
+    results_for_people = ged_data["INDI"]
 
     for res in results_for_people:
         if "BIRT" in res and res["BIRT"] == None:
@@ -777,45 +874,47 @@ def accpet_partial_dates():
 # validate dates
 def validate_date():
     for value in individuals.values():
-        if "NA" != value["BIRT"]:
+        if (value["BIRT"] != "NA"):
             birth = value["BIRT"]
             try:
                 datetime.strptime(birth, '%Y-%m-%d')
             except ValueError:
                 error_array.append(
-                    "ERROR: INDIVIDUAL: US42: {}: Individual {} does not have valid Birth Date {}".format(
-                        value["BIRT_LINE"], value["INDI"], value["BIRT"]))
+                    "ERROR: INDIVIDUAL: US42:  Individual {} does not have valid Birth Date {}".format(
+                        value["INDI"], value["BIRT"]))
 
-        if value["DEAT"] != "NA":
+        if (value["DEAT"] != "NA"):
             death = value["DEAT"]
             try:
                 datetime.strptime(death, '%Y-%m-%d')
             except ValueError:
                 error_array.append(
-                    "ERROR: INDIVIDUAL: US42: {}: Individual {} does not have valid Death Date {}".format(
-                        value["DEAT_LINE"], value["INDI"], value["DEAT"]))
+                    "ERROR: INDIVIDUAL: US42: Individual {} does not have valid Death Date {}".format(
+                        value["INDI"], value["DEAT"]))
 
     for value in family_dic.values():
-        if value["MARR"] != "NA":
+        if (value["MARR"] != "NA"):
             marr = value["MARR"]
             try:
                 datetime.strptime(marr, '%Y-%m-%d')
             except ValueError:
                 error_array.append(
-                    "ERROR: FAMILY: US42: {}: Famliy {} does not have valid Marriage Date {}".format(value["MARR_LINE"],
-                                                                                                     value["FAM"],
-                                                                                                     value["MARR"]))
-        if value["DIV"] != "NA":
+                    "ERROR: FAMILY: US42: Famliy {} does not have valid Marriage Date {}".format(value["FAM"],
+                                                                                                       value["MARR"]))
+
+        if (value["DIV"] != "NA"):
             div = value["DIV"]
             try:
                 datetime.strptime(div, '%Y-%m-%d')
+            except TypeError:
+
+                error_array.append(
+                    "ERROR: FAMILY: US42: Famliy {} does not have valid Divorce Date {}".format(value["FAM"],value["DIV"]))
             except ValueError:
                 error_array.append(
-                    "ERROR: FAMILY: US42: {}: Famliy {} does not have valid Divorce Date {}".format(value["DIV_LINE"],
-                                                                                                    value["FAM"],
-                                                                                                    value["DIV"]))
+                    "ERROR: FAMILY: US42: Famliy {} does not have valid Divorce Date {}".format(value["FAM"],
+                                                                                                value["DIV"]))
     return error_array
-
 
 
 # US39
@@ -850,8 +949,206 @@ def list_upcoming_anni():
         print_table("US39: List Upcoming Anniversaries Table", allFields, tagNames, current_dic)
     return result
 
-if __name__ == '__main__':
 
+def determine_days(date1, date2):
+    year1 = int(date1.split('-')[0])
+    month1 = int(date1.split('-')[1])
+    day1 = int(date1.split('-')[2])
+
+    if date2 == None:
+        year2 = int(datetime.today().strftime("%Y"))
+        month2 = int(datetime.today().strftime("%m"))
+        day2 = int(datetime.today().strftime("%d"))
+    else:
+        year2 = int(date2.split('-')[0])
+        month2 = int(date2.split('-')[1])
+        day2 = int(date2.split('-')[2])
+
+    return (year2 - year1) * 365 + (month2 - month1) * 30 + day2 - day1
+
+
+# US09
+# lingwen Kong
+def birth_before_death_parents():
+    """ US09: Birth before death of parents """
+    global error_array
+    error_array = []
+    for family in family_dic.values():
+        if "children_objects" in family:
+            if "husband_object" in family:
+                husband_death = family["husband_object"]["DEAT"]
+            if "wife_object" in family:
+                wife_death = family["wife_object"]["DEAT"]
+            for child in family["children_objects"]:
+                if (wife_death != "NA"):
+                    if (determine_days(child["BIRT"], wife_death) < 0):
+                        error_array.append(
+                            f"ERROR: INDIVIDUAL: US09: {child['INDI']}: Child was born at {child['BIRT']} after death of mother {wife_death}")
+                if (husband_death != "NA"):
+                    if (determine_days(husband_death, child["BIRT"]) / 30 > 9):
+                        error_array.append(
+                            f"ERROR: INDIVIDUAL: US09: {child['INDI']}: Child was born at {child['BIRT']} after 9 month death of father {husband_death}")
+
+
+def is_spouse_a_child(individual_id, spouse_id):
+    individual_object = individuals[individual_id]
+    if 'SPOUSE' in individual_object and individual_object['SPOUSE'] != 'NA':
+        for spouse_fam in individual_object['SPOUSE']:
+            if spouse_fam in family_dic:
+                family_temp = family_dic[spouse_fam]
+                if "FAM_CHILD" in family_temp and spouse_id in family_temp["FAM_CHILD"]:
+                    return True
+        return False
+
+
+# US17
+# lingwen kong
+def check_parent_child_marriage():
+    for family_id in family_dic:
+        family_temp = family_dic[family_id]
+        if "HUSB" in family_temp and family_temp["HUSB"] != 'NA' and "WIFE" in family_temp and family_temp[
+            "WIFE"] != 'NA':
+            if is_spouse_a_child(family_temp["HUSB"], family_temp["WIFE"]):
+                anomaly_array.append("ANOMALY: INDIVIDUAL: US17: {}: {}: Individual married to child {}" \
+                                     .format(family_temp["HUSB_LINE"], family_temp["HUSB"], family_temp["WIFE"]))
+            if is_spouse_a_child(family_temp["WIFE"], family_temp["HUSB"]):
+                anomaly_array.append("ANOMALY: INDIVIDUAL: US17: {}: {}: Individual married to child {}" \
+                                     .format(family_temp["WIFE_LINE"], family_temp["WIFE"], family_temp["HUSB"]))
+
+
+# US21
+# lingwen kong
+def correct_gender():
+    create_family_dic()
+    error_array = []
+    for family in family_dic.values():
+        if "husband_object" in family:
+            husband_sex = family["husband_object"]["SEX"]
+            if (husband_sex != "M"):
+                error_array.append("ERROR: FAMILY: US21: {}: {}: Is Husband and has Sex as Female".format(
+                    family["husband_object"]["SEX_LINE"], family["husband_object"]["INDI"]))
+        if "wife_object" in family:
+            wife_sex = family["wife_object"]["SEX"]
+            if (wife_sex != "F"):
+                error_array.append(
+                    "ERROR: FAMILY: US21: {}: {}: Is Wife and has Sex as Male".format(family["wife_object"]["SEX_LINE"],
+                                                                                      family["wife_object"]["INDI"]))
+
+
+# US26
+# lingwen Kong
+def check_corresponding_entries():
+    for family_id in family_dic:
+        family = family_dic[family_id]
+        if "HUSB" in family and family["HUSB"] != "NA":
+            husband_object = family["husband_object"]
+            if husband_object != "NA" and family_id not in husband_object["SPOUSE"]:
+                error_array.append(
+                    "ERROR: FAMILY: US26: {}: {}: Husband id does not match with family id in individuals spouse entry".format(
+                        family["FAM_LINE"], family["HUSB"]))
+        if "WIFE" in family and family["WIFE"] != "NA":
+            wife_object = family["wife_object"]
+            if wife_object != "NA" and family_id not in wife_object["SPOUSE"]:
+                error_array.append(
+                    "ERROR: FAMILY: US26: {}: {}: Wife id does not match with family id in individuals spouse entry".format(
+                        family["FAM_LINE"], family["WIFE"]))
+        if "children_objects" in family and family["children_objects"] != "NA":
+            for child_object in family["children_objects"]:
+                if child_object != "NA" and family_id not in child_object["INDI_CHILD"]:
+                    error_array.append(
+                        "ERROR: FAMILY: US26: {}: {}: Child id does not match with family id in individuals spouse entry".format(
+                            family["FAM_LINE"], child_object["INDI"]))
+
+
+# US27
+
+def calculateAge(birthDate):
+    today = date.today()
+    age = today.year - birthDate.year - ((today.month, today.day) < (birthDate.month, birthDate.day))
+    return age
+
+
+def include_individual_ages():
+    global individuals
+    tmp = individuals
+    for currentIndividual in tmp.values():
+        if currentIndividual['DEAT'] == 'NA':
+            newArr = currentIndividual['BIRT'].split('-')
+            age = calculateAge(date(int(newArr[0]), int(newArr[1]), int(newArr[2])))
+            currentIndividual['AGE'] = age
+        else:
+            deathDate = currentIndividual['DEAT'].split('-')
+            birthDate = currentIndividual['BIRT'].split('-')
+            biggerNumber = calculateAge(date(int(birthDate[0]), int(birthDate[1]), int(birthDate[2])))
+            smallerNumber = calculateAge(date(int(deathDate[0]), int(deathDate[1]), int(deathDate[2])))
+            finalAge = biggerNumber - smallerNumber
+            currentIndividual['AGE'] = finalAge
+    individuals = tmp
+    return tmp
+
+
+# US28 List siblings in families by decreasing age, i.e. oldest siblings first
+# lingwen kong
+def listSiblingsByAge():
+    create_family_dic()
+    error_count = 0
+    print("US28: List siblings by decreasing age")
+    for fam in family_dic.values():
+        currentSiblings = fam["FAM_CHILD"]
+        sibling_count = 1
+        if currentSiblings != "NA":
+            current_dic = {}
+            for sibling in currentSiblings:
+                try:
+                    siblingAge = individuals[sibling]["AGE"]
+                except:
+                    continue
+                if (siblingAge == "NA"):  # one of the siblings does not have age
+                    error_array.append(
+                        ("ERROR: FAMILY: US28: {}: Child {} has no age").format(individuals[sibling]["INDI_LINE"],
+                                                                                sibling))
+                    sibling_count = 0
+                    error_count += 1
+                    break;
+                if int(siblingAge) in current_dic:
+                    sibling_list = current_dic[int(siblingAge)]
+                    sibling_list.append(sibling)
+                    current_dic[int(siblingAge)] = sibling_list
+                else:
+                    sibling_list = [sibling]
+                    current_dic[int(siblingAge)] = sibling_list
+            if (sibling_count == 1):
+                temp_dic = sorted(current_dic.keys(), reverse=True)
+                resultList = []
+        else:  # no children in the family
+            anomaly_array.append(
+                "ANOMALY: FAMILY: US28: {}: Family {} has no children".format(fam["FAM_LINE"], fam["FAM"]))
+            error_count += 1
+    print("\n")
+    return error_count
+
+
+# US 32: List multiple births
+def multiple_birth_same():
+    create_family_dic()
+    global anomaly_array
+    tmp_anomaly = []
+    for value in family_dic.values():
+        li = {}
+        if "children_objects" in value:
+            for child in value["children_objects"]:
+                temp = str(child["INDI_CHILD"]) + child["BIRT"]
+                if temp in li:
+                    tmp_anomaly.append(
+                        "ANOMALY: FAMILY: US32: {}: The two or more individuals were born at the same time in a family {}".format(
+                            value["FAM_LINE"], value["FAM"]))
+                else:
+                    li[temp] = child["INDI"]
+    anomaly_array = anomaly_array +tmp_anomaly
+    return tmp_anomaly
+
+
+if __name__ == '__main__':
     # read file according to conditions
     """
         To all members: plz delete all test codes like below 
@@ -861,17 +1158,8 @@ if __name__ == '__main__':
     
     """
 
-    # print(listLivingMarried())
     ged_data = read_ged_data("test_data.ged")
 
-    # print('ged_data')
-    # print(ged_data)
-    '''
-        for family in ged_data["FAM"]:
-            #print(f'family: {family}')
-            husband = family["HUSB"] if "HUSB" in family else []
-            #print(f'husband:{husband}') # does not make any changes
-    '''
     indi_table = PrettyTable()
     indi_table.field_names = ["ID", "Name", "Gender", "Birthday", "Age", "Alive", "Death", "Child", "Spouse"]
 
@@ -893,9 +1181,6 @@ if __name__ == '__main__':
         fam_table.add_row([fam_id, family["MARR"], family["DIV"], family["HUSB"].strip('@'), family["HUSB_NAME"],
                            family["WIFE"].strip('@'), family["WIFE_NAME"], ({",".join(family["FAM_CHILD"])})])
 
-    list_recent_survivors()
-
     with open("output.txt", "w+") as f:
         f.write(str(indi_table))
         f.write(str(fam_table))
-
