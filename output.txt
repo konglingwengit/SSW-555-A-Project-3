@@ -1,20 +1,23 @@
-+----+------------------+--------+----------------+-----+-------+---------------+-------+--------+
-| ID |       Name       | Gender |    Birthday    | Age | Alive |     Death     | Child | Spouse |
-+----+------------------+--------+----------------+-----+-------+---------------+-------+--------+
-| I1 | Nicholas /Mike/  |   M    | 1978 - 8 - 18  |  43 |  True |       NA      |   F1  |   NA   |
-| I2 |   Jason /Mike/   |   M    | 1950 - 11 - 11 |  71 |  True |       NA      |   NA  | F1,F3  |
-| I3 |   Nancy /Leo/    |   F    | 1950 - 11 - 11 |  71 | False | 2021 - 3 - 24 |   NA  |   F1   |
-| I4 |   Ilia /Mike/    |   M    | 1990 - 6 - 30  |  31 |  True |       NA      |   F3  | F2,F4  |
-| I5 |  Claire /John/   |   F    | 1960 - 10 - 16 |  61 |  True |       NA      |   NA  |   F3   |
-| I6 |   Jerry /Mike/   |   M    | 2018 - 7 - 23  |  3  |  True |       NA      |   F2  |   NA   |
-| I7 | Yvette /Dwight/  |   F    | 1993 - 7 - 20  |  28 |  True |       NA      |   NA  |   F2   |
-| I8 |  Horford /Mike/  |   M    | 2021 - 2 - 10  |  0  |  True |       NA      |   F4  |   NA   |
-| I9 | Jennifer /James/ |   F    | 1994 - 8 - 14  |  27 |  True |       NA      |   NA  |   F4   |
-+----+------------------+--------+----------------+-----+-------+---------------+-------+--------++----+---------------+---------------+------------+--------------+---------+------------------+----------+
++----+------------------+--------+----------------+-----+-------+---------------+-------+-----------+
+| ID |       Name       | Gender |    Birthday    | Age | Alive |     Death     | Child |   Spouse  |
++----+------------------+--------+----------------+-----+-------+---------------+-------+-----------+
+| I1 | Nicholas /Mike/  |   M    | 1978 - 8 - 18  |  43 |  True |       NA      |  @F1@ |    N,A    |
+| I2 |   Jason /Mike/   |   M    | 1950 - 11 - 11 |  71 |  True |       NA      |  N,A  | @F1@,@F3@ |
+| I3 |   Nancy /Leo/    |   F    | 1950 - 11 - 11 |  71 | False | 2021 - 3 - 24 |  N,A  |    @F1@   |
+| I4 |   Ilia /Mike/    |   M    | 1990 - 6 - 30  |  31 |  True |       NA      |  @F3@ | @F2@,@F4@ |
+| I5 |  Claire /John/   |   F    | 1960 - 10 - 16 |  61 |  True |       NA      |  N,A  |    @F3@   |
+| I6 |   Jerry /Mike/   |   M    | 2018 - 7 - 23  |  3  |  True |       NA      |  @F2@ |    N,A    |
+| I7 | Yvette /Dwight/  |   F    | 1993 - 7 - 20  |  28 |  True |       NA      |  N,A  |    @F2@   |
+| I8 |  Horford /Mike/  |   M    | 2021 - 2 - 10  |  0  |  True |       NA      |  @F4@ |    N,A    |
+| I9 | Jennifer /James/ |   F    | 1994 - 8 - 14  |  27 |  True |       NA      |  N,A  |    @F4@   |
++----+------------------+--------+----------------+-----+-------+---------------+-------+-----------++----+---------------+---------------+------------+--------------+---------+------------------+----------+
 | ID |    Married    |    Divorced   | Husband ID | Husband Name | Wife ID |    Wife Name     | Children |
 +----+---------------+---------------+------------+--------------+---------+------------------+----------+
-| F1 | 1976 - 2 - 14 |     ['NA']    |     I2     | Jason /Mike/ |    I3   |   Nancy /Leo/    |  {'I1'}  |
-| F2 | 2016 - 5 - 20 | 2019 - 10 - 1 |     I4     | Ilia /Mike/  |    I7   | Yvette /Dwight/  |  {'I6'}  |
-| F4 | 2020 - 4 - 15 |     ['NA']    |     I4     | Ilia /Mike/  |    I9   | Jennifer /James/ |  {'I8'}  |
-| F3 | 1988 - 12 - 6 |     ['NA']    |     I2     | Jason /Mike/ |    I5   |  Claire /John/   |  {'I4'}  |
+| F1 | 1976 - 2 - 14 |       NA      |     I2     | Jason /Mike/ |    I3   |   Nancy /Leo/    | {'@I1@'} |
+| F2 | 2016 - 5 - 20 | 2019 - 10 - 1 |     I4     | Ilia /Mike/  |    I7   | Yvette /Dwight/  | {'@I6@'} |
+| F4 | 2020 - 4 - 15 |       NA      |     I4     | Ilia /Mike/  |    I9   | Jennifer /James/ | {'@I8@'} |
+| F3 | 1988 - 12 - 6 |       NA      |     I2     | Jason /Mike/ |    I5   |  Claire /John/   | {'@I4@'} |
 +----+---------------+---------------+------------+--------------+---------+------------------+----------+
+ERROR: FAMILY: US42: 116: Famliy @F2@ does not have valid Divorce Date 2019 - 10 - 1
+ANOMALY: INDIVIDUAL: US11: 23: @I2@: Performing bigamy
+ANOMALY: INDIVIDUAL: US30: @I3@: Deceased Person is married to Person @F1@
