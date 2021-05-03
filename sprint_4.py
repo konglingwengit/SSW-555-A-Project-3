@@ -1514,81 +1514,81 @@ if __name__ == '__main__':
     
     """
 
-    ged_data = read_ged_data("test_data.ged")
-    create_family_dic()
-    indi_table = PrettyTable()
-    indi_table.field_names = ["ID", "Name", "Gender", "Birthday", "Age", "Alive", "Death", "Child", "Spouse"]
-
-    fam_table = PrettyTable()
-    fam_table.field_names = ["ID", "Married", "Divorced", "Husband ID", "Husband Name", "Wife ID", "Wife Name",
-                             "Children"]
-
-    for individual in ged_data["INDI"]:
-        print(f'Individual: {individual}')
-        indi_id = individual["INDI"].strip('@')
-        indi_table.add_row([indi_id, individual["NAME"], individual["SEX"], individual["BIRT"], individual["AGE"],
-                            individual["ALIVE"], individual["DEAT"], (",".join(individual["INDI_CHILD"])),
-                            (",".join(individual["SPOUSE"]))])
-
-    for family in ged_data["FAM"]:
-        print(f'FAM: {family}')
-
-        fam_id = family["FAM"].strip('@')
-        fam_table.add_row([fam_id, family["MARR"], family["DIV"], family["HUSB"].strip('@'), family["HUSB_NAME"],
-                           family["WIFE"].strip('@'), family["WIFE_NAME"], ({",".join(family["FAM_CHILD"])})])
-
-    f = open("output.txt", "w+")
-    f.write(str(indi_table))
-    f.write(str(fam_table))
-
-    unique_family_by_spouses()
-    list_deceased()
-    is_marriage_legal()
-    is_age_legal()
-    validate_dates()
-    is_birth_before_marraige()
-    check_for_bigamy()
-    birth_before_death()
-    is_marriage_after_divorce()
-    is_marriage_after_death()
-    check_divorce_before_death()
-    birth_before_marriage_of_parents()
-    unique_ID()
-    parents_not_old()
-    siblings_spacing()
-    unique_birthday()
-    check_sibling_count()
-    check_last_names()
-    listLivingMarried()
-    list_nomarried_living()
-    check_sibling_marriage()
-    listOrphans()
-    list_recent_births()
-    check_multiple_births()
-    large_age_diff()
-    is_uncle_aunt_marriage_legal()
-    unique_family_name_and_birth()
-    list_recent_deaths()
-    list_recent_survivors()
-    list_upcoming_birthday()
-    accpet_partial_dates()
-    validate_date()
-    list_upcoming_anni()
-    birth_before_death_parents()
-    check_parent_child_marriage()
-    correct_gender()
-    check_corresponding_entries()
-    include_individual_ages()
-    listSiblingsByAge()
-    multiple_birth_same()
-
-    print(" Errors list ________")
-    for error in error_array:
-        print(error)
-        f.write("\n"+str(error)+"\n")
-    print(" Anomaly list ________   ")
-    for anomaly in anomaly_array:
-        print(anomaly)
-        f.write(str(anomaly)+"\n")
-    f.close()
+    # ged_data = read_ged_data("test_data.ged")
+    # create_family_dic()
+    # indi_table = PrettyTable()
+    # indi_table.field_names = ["ID", "Name", "Gender", "Birthday", "Age", "Alive", "Death", "Child", "Spouse"]
+    #
+    # fam_table = PrettyTable()
+    # fam_table.field_names = ["ID", "Married", "Divorced", "Husband ID", "Husband Name", "Wife ID", "Wife Name",
+    #                          "Children"]
+    #
+    # for individual in ged_data["INDI"]:
+    #     print(f'Individual: {individual}')
+    #     indi_id = individual["INDI"].strip('@')
+    #     indi_table.add_row([indi_id, individual["NAME"], individual["SEX"], individual["BIRT"], individual["AGE"],
+    #                         individual["ALIVE"], individual["DEAT"], (",".join(individual["INDI_CHILD"])),
+    #                         (",".join(individual["SPOUSE"]))])
+    #
+    # for family in ged_data["FAM"]:
+    #     print(f'FAM: {family}')
+    #
+    #     fam_id = family["FAM"].strip('@')
+    #     fam_table.add_row([fam_id, family["MARR"], family["DIV"], family["HUSB"].strip('@'), family["HUSB_NAME"],
+    #                        family["WIFE"].strip('@'), family["WIFE_NAME"], ({",".join(family["FAM_CHILD"])})])
+    #
+    # f = open("output.txt", "w+")
+    # f.write(str(indi_table))
+    # f.write(str(fam_table))
+    #
+    # unique_family_by_spouses()
+    # list_deceased()
+    # is_marriage_legal()
+    # is_age_legal()
+    # validate_dates()
+    # is_birth_before_marraige()
+    # check_for_bigamy()
+    # birth_before_death()
+    # is_marriage_after_divorce()
+    # is_marriage_after_death()
+    # check_divorce_before_death()
+    # birth_before_marriage_of_parents()
+    # unique_ID()
+    # parents_not_old()
+    # siblings_spacing()
+    # unique_birthday()
+    # check_sibling_count()
+    # check_last_names()
+    # listLivingMarried()
+    # list_nomarried_living()
+    # check_sibling_marriage()
+    # listOrphans()
+    # list_recent_births()
+    # check_multiple_births()
+    # large_age_diff()
+    # is_uncle_aunt_marriage_legal()
+    # unique_family_name_and_birth()
+    # list_recent_deaths()
+    # list_recent_survivors()
+    # list_upcoming_birthday()
+    # accpet_partial_dates()
+    # validate_date()
+    # list_upcoming_anni()
+    # birth_before_death_parents()
+    # check_parent_child_marriage()
+    # correct_gender()
+    # check_corresponding_entries()
+    # include_individual_ages()
+    # listSiblingsByAge()
+    # multiple_birth_same()
+    #
+    # print(" Errors list ________")
+    # for error in error_array:
+    #     print(error)
+    #     f.write("\n"+str(error)+"\n")
+    # print(" Anomaly list ________   ")
+    # for anomaly in anomaly_array:
+    #     print(anomaly)
+    #     f.write(str(anomaly)+"\n")
+    # f.close()
 
